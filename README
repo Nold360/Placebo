@@ -1,0 +1,28 @@
+Placebo
+
+A ClamAV Controll Enviroment for Enterprices
+
+
+
+
+--- Introduction ---
+This Project is Python, PHP, Bash and MySQL based.
+It's supposed to be as simple as possible and must be really reliable. 
+
+This Project is about creating a Interface for an admin, who has to administrade a lot of linux nodes,
+which all need a AntiVirus Scanner and must be kept up to date.
+
+Placebo provides:
+	- A PHP based frontend
+	- 2 listening Daemons (for the Client and the Server)
+	- 2 Programms zu request data from the listening Daemons
+	- A MySQL Database Backend
+	- Full GPG-Key encrypted Communication between the Client and the Server
+
+
+--- Functionality ---
+	- Scan a host remotely 
+	- Update a hosts Virus Signarutes
+	- Add a new host to DB
+	
+	|--> All results are saved to the MySQL DB
