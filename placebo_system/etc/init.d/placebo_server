@@ -1,0 +1,48 @@
+#!/bin/bash
+
+function start() {
+	if [ -f /var/run/placebosd.pid ] ; then
+		echo "PID-File exists... Daemon already running?"
+		status
+	else
+		python /usr/local/placebo/placebosd.py
+	fi
+}
+
+
+function stop() {
+	if [ -f /var/run/placebosd.pid ] ; then
+		kill $(cat /var/run/placebosd.pid)
+		rm -f /var/run/placebosd.pid
+	fi
+	status
+}
+
+	
+function restart() {
+	stop
+	sleep 1
+	start
+}
+
+
+function status() {
+	if [ -f /var/run/placebosd.pid ] ; then
+		echo "Placebo Server Daemon: Running..."
+	else
+		echo "Placebo Server Daemon: Dead..."
+	fi
+}
+
+function help() {
+	echo "Usage: $0 <start|stop|status|restart>"
+}
+
+
+case "$1" in
+	"start") start ;;
+	"stop") stop ;;
+	"restart") restart ;;
+	*) help ;;
+esac
+exit

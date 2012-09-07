@@ -1,10 +1,18 @@
 #!/usr/bin/env python
+'''
+This is the Placebo Server-2-Client Tool
+With this tool you are able to scan, update or add a host.
 
+It will write all results to the MySQL Backend using the "placebo_server" Module
+
+Author: Gerrit Pannek
+Licence: GPLv3
+'''
 import string, os, sys, socket, subprocess
 from placebo_server import *
 
 def help():
-	print "Bla"
+	print "Usage: "+sys.argv[0]+" <scan|add|update> <hostname>"
 
 if len(sys.argv) < 3:
 	help()
@@ -36,46 +44,46 @@ else:
 
 print host+":"+str(port)+" "+command
 
-#try:
-s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-s.connect((str(host), int(port)))
-print "Connected..."
+try:
+	s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+	s.connect((str(host), int(port)))
+	print "Connected..."
 
-if command == "CLNT_SCN":
-	if host_exists(host):
-		ret = encrypt("CLNT_SCN"+path, host)
-		s.send(ret)
-		ret = decrypt(s.recv(65565))
-		if ret[:8] == "CLNT_000":
-			add_scan_to_db(host, path, ret[8:])
+	if command == "CLNT_SCN":
+		if host_exists(host):
+			ret = encrypt("CLNT_SCN"+path, host)
+			s.send(ret)
+			ret = decrypt(s.recv(65565))
+			if ret[:8] == "CLNT_000":
+				add_scan_to_db(host, path, ret[8:])
 
-elif command == "CLNT_VSU":
-	if host_exists(host):
-		s.send(encrypt("CLNT_VSU", host))
-        	ret = decrypt(s.recv(65565))
-        	if ret[:8] == "CLNT_000":
-                	add_signatures_to_db(host, ret[8:])
+	elif command == "CLNT_VSU":
+		if host_exists(host):
+			s.send(encrypt("CLNT_VSU", host))
+        		ret = decrypt(s.recv(65565))
+        		if ret[:8] == "CLNT_000":
+        	        	add_signatures_to_db(host, ret[8:])
 
-elif command == "CLNT_NEW":
-	#if not host_exists(host):
-	s.send("CLNT_NEW")
-        ret = decrypt(s.recv(65565))
-        if ret[:8] == "CLNT_NEW":
-                add_server_to_db(host, s.getpeername()[0])
-		add_key_to_keyring(ret[8:])
-else:
-	print "Abort!"
+	elif command == "CLNT_NEW":
+		#if not host_exists(host):
+		s.send("CLNT_NEW")
+	        ret = decrypt(s.recv(65565))
+	        if ret[:8] == "CLNT_NEW":
+	                add_server_to_db(host, s.getpeername()[0])
+			add_key_to_keyring(ret[8:])
+	else:
+		print "Abort!"
+		sys.exit(1)
+
+	if ret[:8]!= clean_string("CLNT_000") and (command != "CLNT_NEW" and ref[:8] != "CLNT_NEW"):
+		print "ERROR_CODE: "+ret[:-4]
+		sys.exit(1)
+	else:
+		print "OK"
+		sys.exit(0)
+	s.close()
+except:
+	print "ERROR: Can't connect to Host!"
 	sys.exit(1)
-
-if ret[:8]!= clean_string("CLNT_000") and (command != "CLNT_NEW" and ref[:8] != "CLNT_NEW"):
-	print "ERROR_CODE: "+ret[:-4]
-	sys.exit(1)
-else:
-	print "OK"
-	sys.exit(0)
-s.close()
-#except:
-#	print "ERROR: Can't connect to Host!"
-#	sys.exit(1)
 	
 sys.exit(0)
