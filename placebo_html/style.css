@@ -1,68 +1,107 @@
-  	form {
-		margin:0px;
-	}
-	
-	div#Header {
-		text-align: left;    /* Headerinhalt wieder links ausrichten */
-		margin: 0 auto;      /* standardkonforme horizontale Zentrierung */
-		width: 90%;
-		padding: 0;
-		background: none;
-		border: 0px ridge black;
-	}
-	
-    form#logout {
-		text-align: right;
-		position: absolut;
-		top: 0px;
-		margin: 0px;
-		right: 0px;
-    }
-	
-    form#pwChange {
-		vertical-align: middle;
-		text-align: middle;
-    }
-	
-	body {
-		background-repeat:no-repeat; 
-		background-position:bottom right;
-		background-attachment:fixed;
-		height: 100%;
-		background-color: white;
-		margin: auto
-	}
+body {
+	background-color: white;
+	overflow: auto;
+}
 
-  a:link {
-    color: black; background-color: none; text-decoration:none;
-  }
-  a:visited {
-    color: #000000; background-color: none; text-decoration:none;
-  }
-  a:hover {
-    color: #000000; background-color: none; text-decoration: none;
-  }
-  a:active {
-    color: #000000; background-color: none; text-decoration: none;
-  }
+form {
+	padding: 0px;	
+	margin: 0px;
+	top: 0px;
+}
 
-	table#content {
-		margin-left:auto; 
-		margin-right:auto;
-		vertical-align: middle;
-		text-align: middle;
-		
-		width: 100%;
-	}
-  
-  div#Content {
-		height: 70%;
-		width: 100%;
-  }
+#main {
+	position: absolut;
+	overflow: auto;
+	left: 35%; 
+	border: solid 1px black;
+	top: 0px;
+	width: 85%;
+	height: 88%;
+	float: right;
+	margin-right: 0.1%;
+	margin-top: 0.1%;
+	background-color: #dee6ff;
+}
 
-  p#Footer a:link {
-    color: grey; text-decoration:none;
-  }
-  p#Footer a:hover {
-    color: black; text-decoration: none;
-  }
+#sidebar {
+	position: absolut;
+	overflow: auto;
+	float:left;
+	top: 0px;
+	width: 14%;
+	height: 68.8%;
+	border: solid 1px #000000;
+	margin-left: 0.1%;
+	margin-top: 0.1%;
+	background-color: #dee6ff;
+}
+
+#userbar {
+	position: absolut;
+	bottom: 0px;
+	width: 14%;
+	overflow: auto;
+	height: 19%;
+	border: solid 1px #000000;
+	border-top: solid 0px;
+	margin-left: 0.1%;
+	background-color: #dee6ff;
+}
+
+#footer {
+	color: #444444;
+	clear: both;
+    font-size: 0.83em;
+    text-align: center;
+	position: absolut;
+	overflow: auto;
+	left: 0%; 
+	border: solid 1px black;
+	top: 0px;
+	width: 99.7%;
+	height: 3%;
+	float: right;
+	margin-right: 0.1%;
+	margin-top: 0.4%;
+	background-color: #dee6ff;
+}
+
+h2 {
+	border-bottom: solid 1px #000000;
+	padding: 0px;
+	margin: 10px 0px;
+}
+
+a:link, a:visited, a:active { 
+  text-decoration:none;
+  color: #000000;
+}
+
+a:hover {
+  text-decoration: underline;
+  color: #000000;
+}
+
+
+li {
+	text-decoration: none;
+	list-style-type: none; 
+	border-left: none;
+}
+
+ul {
+	text-decoration: none;
+	list-style-type: none; 
+	list-style-position: inside;
+    margin: 0px; padding: 0px 15px;
+
+}
+
+#content {
+	width: 100%;
+}
+
+#header {
+text-decoration:none;
+  color: #000000;
+}

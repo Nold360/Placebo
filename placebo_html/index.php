@@ -1,28 +1,29 @@
-<?php
-	include "./inc/inc_user.php";
-	
-	echo ("	<html><head><title>Placebo</title>
-			<link href=style.css rel=stylesheet type=text/css></head>
-			<body>
-			<div id=header><font size=6px>Placebo</font>");
-			
-			if($_SESSION["USER"] == true) {
-				echo "<a href=change_password_form.php> Passwort ändern</a>";
-				echo "<form id=logout action=./backend/logout.php method=post><input type=submit value=Logout></form><br><br>";
+<html>
+<title>Placebo</title>
+<body>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="style.css">
+<link rel="icon" href="./gfx/placebo_pill_favicon.ico" type="image/x-icon">
+		 		
+<?php include ("./inc/inc_user.php"); ?>
 
-			}
-			
-	
-	if($_SESSION["USER"] != true) {
-		echo("
-				<br><div id=Content>Please login:<form action=./backend/login.php method=post>
-				<br>Username &nbsp;<input type=text name=username>
-				<br>Password <input type=password name=password>
-				<br><input type=submit value=Login>
-				</form></div>");
-	} else {
-		include "./inc/inc_content.php";
-	}
-	echo "</div>";
-	echo "</body></html>";
-?>
+<a id=header href=index.php><h2>Placebo <img src=./gfx/placebo_open_blue_pill_small.png></img></h2></a>
+<div id=sidebar>
+	<?php include("sidebar.php"); ?>
+</div>
+
+<div id=main>
+	<?php include ("main.php"); ?>
+</div>
+
+<div id=userbar>
+	<?php include ("userbar.php"); ?>
+</div>
+
+<div id=footer>
+	| <a target=_blank href=https://github.com/Nold360/Placebo>Placebo</a> | Ver. 0.1 | 
+	By Gerrit '<a target=_blank href=https://github.com/Nold360>Nold</a>' Pannek 2012 |
+	<a target=_blank href=http://www.gnu.org/licenses/gpl-3.0.txt>GPLv3</a> licensed |
+	Powered by <a target=_blank	 href=http://www.clamav.net>ClamAV</a> |
+</div>
+</body></html>

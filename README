@@ -25,4 +25,4 @@ Placebo provides:
 	- Update a hosts Virus Signarutes
 	- Add a new host to DB
 	
-	|--> All results are saved to the MySQL DB
+	|--> All results are saved to the MySQL DB and are available and controlable from the PHP-Frontend!
