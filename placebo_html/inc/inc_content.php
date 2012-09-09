@@ -28,7 +28,7 @@ function show_client_list($hostname=null) {
 	}
 	
 
-	echo "<table id=content border=1 bgcolor=white><tr bgcolor=#9999FF><th>Status</th><th>Hostname</th><th>Last Scan-Path</th><th>Last Scan-Date</th><th>Signature Date</th>";
+	echo "<table id=content bgcolor=white><tr bgcolor=#9999FF><th>Status</th><th>Hostname</th><th>Last Scan-Path</th><th>Last Scan-Date</th><th>Signature Date</th>";
 	
 	$result=mysql_query($query);
 	while(($row=mysql_fetch_array($result)) != null) {
@@ -108,7 +108,7 @@ function show_client_details($id) {
 			}
 			
 			//Signaturen anzeigen
-			echo "<table id=content border=1 bgcolor=#FFFFFF><tr bgcolor=#9999FF><th>Signature</th><th>Date</th>";
+			echo "<table id=content bgcolor=#FFFFFF><tr bgcolor=#9999FF><th>Signature</th><th>Date</th>";
 			while(($row=mysql_fetch_array($result)) != null) {
 				echo "<tr><td>".$row["Signature"]."</td><td>".$row["Date"]."</td></tr>";
 			}
@@ -129,7 +129,7 @@ function show_client_details($id) {
 					<input type=submit value=Scan></form>";
 			}
 			
-			echo "<table id=content border=1 bgcolor=white><tr bgcolor=#9999FF><th>Rescan</th><th>Scan-Path</th><th>Date</th><th>Report</th></tr>";
+			echo "<table id=content bgcolor=white><tr bgcolor=#9999FF><th>Rescan</th><th>Scan-Path</th><th>Date</th><th>Report</th></tr>";
 			while(($row=mysql_fetch_array($result)) != null) {
 				if(strpos($row["Report"], "FOUND")) {
 					$color = "red";

@@ -105,3 +105,15 @@ ul {
 text-decoration:none;
   color: #000000;
 }
+
+table{
+	border-collapse:collapse;
+}
+
+td, th, tr {
+	border-left: 1px solid black;
+}
+
+tr:hover {
+	background: lightgrey;
+}
