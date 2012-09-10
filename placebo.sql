@@ -10,6 +10,8 @@
 SET SQL_MODE="NO_AUTO_VALUE_ON_ZERO";
 SET time_zone = "+00:00";
 
+CREATE DATABASE IF NOT EXISTS placebo;
+USE placebo;
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
@@ -31,7 +33,7 @@ CREATE TABLE IF NOT EXISTS `client` (
   `Hostname` varchar(50) NOT NULL,
   `IP` varchar(20) NOT NULL,
   PRIMARY KEY  (`ID`)
-) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=24 ;
+) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=0 ;
 
 --
 -- Daten für Tabelle `client`
@@ -53,7 +55,7 @@ CREATE TABLE IF NOT EXISTS `report` (
   `Report` text NOT NULL,
   `Date` timestamp NOT NULL default CURRENT_TIMESTAMP,
   PRIMARY KEY  (`ID`)
-) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=38 ;
+) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=0 ;
 
 -- --------------------------------------------------------
 
@@ -67,7 +69,7 @@ CREATE TABLE IF NOT EXISTS `signature` (
   `Signature` varchar(255) NOT NULL,
   `Date` timestamp NOT NULL default CURRENT_TIMESTAMP,
   PRIMARY KEY  (`ID`)
-) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=135 ;
+) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=0 ;
 -- --------------------------------------------------------
 
 --
@@ -75,12 +77,13 @@ CREATE TABLE IF NOT EXISTS `signature` (
 --
 
 CREATE TABLE IF NOT EXISTS `user` (
-  `ID` int(11) NOT NULL,
+  `ID` int(11) NOT NULL auto_increment,
   `Username` varchar(10) NOT NULL,
   `Name` varchar(20) NOT NULL,
   `Prename` varchar(20) NOT NULL,
   `Password` varchar(100) NOT NULL,
-  `Status` varchar(10) NOT NULL
+  `Status` varchar(10) NOT NULL,
+  PRIMARY KEY(`ID`)
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1;
 
 --
