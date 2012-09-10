@@ -4,43 +4,13 @@ import sys, os, time, atexit, array, string
 from signal import SIGTERM 
 from socket import *
 from threading import Thread
-import subprocess, MySQLdb
+import subprocess
 
-from placebo_server import *
+from placebo_client import *
 
 
 
 class Daemon:
-	#####################################################################################
-	# Thread for processing Server requests
-	#####################################################################################
-	class proc_server_request(Thread):
-		def __init__ (self, connect, address, hostname):
-			Thread.__init__(self)
-			self.connect = connect
-			self.address = address
-			self.hostname = hostname
-
-		def run(self):
-			connect = self.connect
-			msg = decrypt(connect.recv(65565))
-			if msg != None:
-				if clean_string(msg[0:8]) == "CLNT_NEW":
-					add_server_to_db(hostname, address[0])
-					add_key_to_keyring(str(msg[8:]))
-					print msg[9:]
-					connect.send(encrypt("SRV_0000",hostname))	
-				elif clean_string(msg[0:8]) == "CLNT_SCN":
-					add_scan_to_db(hostname, str(msg[8:]))
-					connect.send(encrypt("SRV_0000", hostname))	
-				elif clean_string(msg[0:8]) == "CLNT_VSU":
-					add_signatures_to_db(hostname, str(msg[8:]))
-					connect.send(encrypt("SRV_0000", hostname))
-				else:
-					connect.send(encrypt("SRV_0001", hostname))
-			connect.close()
-
-
 	def __init__(self, pidfile, stdin='/dev/null', stdout='/dev/null', stderr='/dev/null'):
 		self.stdin = stdin
 		self.stdout = stdout
@@ -156,32 +126,68 @@ class Daemon:
 
 	def run(self):
 		##### MAIN #####
-		port=int(get_config_parameter("srv_port"))
-		host=get_config_parameter("srv_addr")
+		port=int(get_config_parameter("cln_port"))
+		host=get_config_parameter("cln_addr")
 		addr=(host,port)
 
 		serversocket = socket(AF_INET, SOCK_STREAM)
 		serversocket.bind(addr)
 		serversocket.listen(5)
 
-		print "Placebo Server-Daemon started..."
+		print "Placebo Client-Daemon started..."
 		while 1: 
 		    try: 
 			connection,address = serversocket.accept()
-			hostname = str(get_hostname(address[0]))
-			print hostname
-		      	new_thread = proc_server_request(connection,address[0],hostname)
-		       	new_thread.start()
-		
-		    except KeyboardInterrupt:
+			new_thread = proc_server_request(connection)
+			new_thread.start()
+
+		    except:
 			print "Exit"
 			serversocket.close()
-			sys.exit(0)
-		       
+			sys.exit(1)
+
 		serversocket.close()
+		sys.exit(0)
+
+        #####################################################################################
+        # Thread for processing Server requests
+        #####################################################################################
+class proc_server_request(Thread):
+        def __init__ (self, connect):
+                Thread.__init__(self)
+                self.connect = connect
+
+        def run(self):
+                connect = self.connect
+                enc_msg = connect.recv(65565)
+		if enc_msg.split("\n")[0] == "-----BEGIN PGP MESSAGE-----":
+                        msg = decrypt(enc_msg)
+                elif clean_string(enc_msg) == "CLNT_NEW":
+                        connect.send(new_host_request())
+                        return 0
+                else:
+                        print "Error"
+                        sys.exit(1)
+
+                if clean_string(msg[0:8]) == "CLNT_SCN":
+                        if len(process_exists("clamscan -i -r "+clean_string(msg[8:-4]))) == 0: 
+				enc_msg = encrypt("CLNT_000"+scan_file(clean_string(msg[8:-4])))
+			else:
+				enc_msg = encrypt("CLNT_100")
+                        connect.send(enc_msg)
+                elif clean_string(msg[0:8]) == "CLNT_VSU":
+			if len(process_exists("update_clam_signatures.sh")) == 0:
+                        	connect.send(encrypt("CLNT_000"+update_virus_signatures()))
+                        else:
+				connect.send(encrypt("CLNT_100"))
+                else:
+                        connect.send(encrypt("CLNT_001"))
+  
+		connect.close()
 
 
-daemon = Daemon("/var/run/placebosd.pid", "/dev/stdin", "/dev/stdout", "/dev/stderr")
+daemon = Daemon("/var/run/placebocd.pid", "/dev/stdin", "/dev/stdout", "/dev/stderr")
 daemon.start()
+
 
 

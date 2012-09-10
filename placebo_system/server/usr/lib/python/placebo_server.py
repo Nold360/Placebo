@@ -28,7 +28,7 @@ def get_config_parameter(parameter):
 # Decrypts a message using the Private Keypair
 #####################################################################################
 def decrypt(enc_msg):
-        command = "gpg --quiet --always-trust  --decrypt << EOF\n"+enc_msg+"EOF"
+        command = "gpg --batch --quiet --always-trust  --decrypt << EOF\n"+enc_msg+"EOF"
 
         proc =  subprocess.Popen(command, shell=True, stdout=subprocess.PIPE)
         return proc.communicate()[0]
@@ -38,12 +38,12 @@ def decrypt(enc_msg):
 # Encrypts a message using the "Placebo Server"'s PublicKey
 #####################################################################################
 def encrypt(msg,hostname):
-        command = "gpg --quiet --encrypt --always-trust -a -r \""+hostname+"\"<< EOF\n"+msg+"EOF"
+        command = "gpg --batch --quiet --encrypt --always-trust -a -r \""+hostname+"\"<< EOF\n"+msg+"EOF"
         proc = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE)
         return proc.communicate()[0]
 
 def add_key_to_keyring(key):
-        command = "gpg --quiet -a --import << EOF\n"+key+"EOF"
+        command = "gpg --batch --quiet -a --import << EOF\n"+key+"EOF"
         proc = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE)
         return proc.communicate()[1]
 
@@ -100,3 +100,10 @@ def host_exists(host):
 		return False
 	else:
 		return True
+
+def get_public_key():
+	key_file = open("/etc/placebo/keypair/server.pub", "r")
+	key = ""
+	for line in key_file:
+		key = key+line
+	return key

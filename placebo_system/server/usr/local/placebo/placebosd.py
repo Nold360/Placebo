@@ -4,52 +4,14 @@ import sys, os, time, atexit, array, string
 from signal import SIGTERM 
 from socket import *
 from threading import Thread
-import subprocess
+import subprocess, MySQLdb
 
-from placebo_client import *
+from placebo_server import *
+
 
 
 
 class Daemon:
-	"""
-	A generic daemon class.
-	
-	Usage: subclass the Daemon class and override the run() method
-	"""
-
-	#####################################################################################
-	# Thread for processing Server requests
-	#####################################################################################
-	class proc_server_request(Thread):
-		def __init__ (self, connect):
-			Thread.__init__(self)
-			self.connect = connect
-
-		def run(self):
-			connect = self.connect
-			enc_msg = connect.recv(65565)
-			if enc_msg.split("\n")[0] == "-----BEGIN PGP MESSAGE-----":
-				msg = decrypt(enc_msg)
-			elif clean_string(enc_msg) == "CLNT_NEW":
-				print "new..."
-				connect.send(new_host_request())
-				return 0
-			else:
-				print "Error"
-				sys.exit(1)	
-
-			if clean_string(msg[0:8]) == "CLNT_SCN":
-				print "scan.."
-				enc_msg = encrypt("CLNT_000"+scan_file(clean_string(msg[8:-4])))
-				connect.send(enc_msg)
-			elif clean_string(msg[0:8]) == "CLNT_VSU":
-				print "vsu..."
-				ret = update_virus_signatures()		
-				connect.send(encrypt("CLNT_000"+ret))
-			else:
-				connect.send(encrypt("CLNT_001"))
-			connect.close()
-
 	def __init__(self, pidfile, stdin='/dev/null', stdout='/dev/null', stderr='/dev/null'):
 		self.stdin = stdin
 		self.stdout = stdout
@@ -165,31 +127,69 @@ class Daemon:
 
 	def run(self):
 		##### MAIN #####
-		port=int(get_config_parameter("cln_port"))
-		host=get_config_parameter("cln_addr")
+		port=int(get_config_parameter("srv_port"))
+		host=get_config_parameter("srv_addr")
 		addr=(host,port)
 
 		serversocket = socket(AF_INET, SOCK_STREAM)
 		serversocket.bind(addr)
 		serversocket.listen(5)
 
-		print "Placebo Client-Daemon started..."
+		print "Placebo Server-Daemon started..."
 		while 1: 
-		    try: 
-			connection,address = serversocket.accept()
-			new_thread = proc_server_request(connection)
-			new_thread.start()
-
-		    except:
-			print "Exit"
-			serversocket.close()
-			sys.exit(1)
-		sys.exit(0)
+			try: 
+				connection,address = serversocket.accept()
+				hostname = str(get_hostname(address[0]))
+		      		new_thread = proc_client_request(connection,address[0],hostname)
+		       		new_thread.start()
+		
+			except KeyboardInterrupt:
+				print "Dying..."
+				serversocket.close()
+				sys.exit(0)
+		       
 		serversocket.close()
 
 
-daemon = Daemon("/var/run/placebocd.pid", "/dev/stdin", "/dev/stdout", "/dev/stderr")
-daemon.start()
+#####################################################################################
+# Thread for processing Server requests
+#####################################################################################
+class proc_client_request(Thread, Daemon):
+	def __init__ (self, connect, address, hostname):
+                Thread.__init__(self)
+                self.connect = connect
+                self.address = address
+                self.hostname = hostname
 
+        def run(self):
+                connect = self.connect
+		hostname = self.hostname
+		address = self.address
+                msg = connect.recv(65565)
+                if msg[0] == "-": #Enctypted message
+                        msg = decrypt(msg)
+                        if msg != None:
+                               if clean_string(msg[0:8]) == "CLNT_NEW":
+                                        add_server_to_db(hostname, address[0])
+                                        add_key_to_keyring(str(msg[8:]))
+                                        connect.send(encrypt("SRV_0000",hostname))
+                               elif clean_string(msg[0:8]) == "CLNT_SCN":
+                                        path = msg[8:].split('\n')[1]
+					add_scan_to_db(hostname, path, str(msg[8:].split('\n')[2]))
+                                        connect.send(encrypt("SRV_0000", hostname))
+                               elif clean_string(msg[0:8]) == "CLNT_VSU":
+                                        add_signatures_to_db(hostname, str(msg[8:]))
+                                        connect.send(encrypt("SRV_0000", hostname))
+                               else:
+                                        connect.send(encrypt("SRV_0001", hostname))
+                else: #Clean Message
+                        if clean_string(msg) == "CLNT_GSK":
+                                connect.send("SRV_PUBK"+get_public_key())
+                        else:
+                                connect.send("SRV_0001")
+                connect.close()
+
+daemon = Daemon("/var/run/placebosd.pid", "/dev/stdin", "/dev/stdout", "/dev/stderr")
+daemon.start()
 
 

@@ -9,6 +9,14 @@ form {
 	top: 0px;
 }
 
+#user {
+	width: 100%;
+}
+
+#delete {
+	float: right;
+}
+
 #main {
 	position: absolut;
 	overflow: auto;
@@ -115,5 +123,5 @@ td, th, tr {
 }
 
 tr:hover {
-	background: lightgrey;
+	background: lightblue;
 }

@@ -44,7 +44,8 @@ else:
 
 print host+":"+str(port)+" "+command
 
-try:
+if 1 == 1:
+#try:
 	s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 	s.connect((str(host), int(port)))
 	print "Connected..."
@@ -75,15 +76,13 @@ try:
 		print "Abort!"
 		sys.exit(1)
 
-	if ret[:8]!= clean_string("CLNT_000") and (command != "CLNT_NEW" and ref[:8] != "CLNT_NEW"):
+	if ret[:8]!= clean_string("CLNT_000") and (command != "CLNT_NEW" and ret[:8] != "CLNT_NEW"):
 		print "ERROR_CODE: "+ret[:-4]
-		sys.exit(1)
 	else:
 		print "OK"
-		sys.exit(0)
 	s.close()
-except:
-	print "ERROR: Can't connect to Host!"
-	sys.exit(1)
+#except:
+#	print "ERROR: Can't connect to Host!"
+#	sys.exit(1)
 	
 sys.exit(0)

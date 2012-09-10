@@ -5,6 +5,7 @@
 		echo "&rarr; <a href=./index.php?site=search>Search</a><br>";
 		if($_SESSION["STATUS"] == 2) {
 			echo "&rarr; <a href=./index.php?site=add_host>Add Host</a><br>";
+			echo "&rarr; <a href=./index.php?site=mod_users>Change Users</a><br>";
 		}
 		echo "<br>&rarr; <a href=./backend/logout.php>Logout</a><br>";
 		echo "&rarr; <a href=index.php?site=chpasswd>Change Password</a>";

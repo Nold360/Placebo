@@ -26,7 +26,7 @@ def get_config_parameter(parameter):
 # Decrypts a message using the Private Keypair
 #####################################################################################
 def decrypt(enc_msg):
-        command = "gpg --decrypt << EOF\n"+enc_msg+"EOF"
+        command = "gpg --batch --quiet --decrypt << EOF\n"+enc_msg+"EOF"
         proc =  subprocess.Popen(command, shell=True, stdout=subprocess.PIPE)
         return proc.communicate()[0]
 
@@ -35,7 +35,7 @@ def decrypt(enc_msg):
 # Encrypts a message using the "Placebo Server"'s PublicKey
 #####################################################################################
 def encrypt(msg):
-        command = "gpg --encrypt -a -r \"Placebo Server\"<< EOF\n"+str(msg)+"EOF"
+        command = "gpg --batch --quiet --encrypt -a -r \"Placebo Server\"<< EOF\n"+str(msg)+"EOF"
         proc = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE)
         return proc.communicate()[0]
 
@@ -55,8 +55,18 @@ def update_virus_signatures():
         return proc.communicate()[0]
 
 def new_host_request():
-        command = "gpg --export -a $(hostname)"
+        command = "gpg --batch --quiet --export -a $(hostname)"
         proc = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE)
         key = proc.communicate()[0]
         return encrypt("CLNT_NEW"+key)
+
+def add_public_key(key):
+	command = "gpg  --no-verbose --quiet --batch -a --import << EOF\n"+str(key)+"EOF"
+	proc = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE)
+        return proc.communicate()[0]	
+
+def process_exists(string):
+	command = "ps -ef | grep '"+string+"' | grep -v grep"
+        proc = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE)
+        return proc.communicate()[0]
 

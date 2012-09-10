@@ -1,8 +1,13 @@
 #!/bin/bash
 
-vsig_server="http://uscesx07/clamav/vsig"
+if [ $UID != 0 ] ; then
+	echo "You must be root!"
+	exit 1
+fi
 
-rm  /var/lib/clamav/files.list 2> /dev/null
+vsig_server=$(grep vsig_server /etc/placebo/client.conf | cut -f2 -d"\"")
+
+rm  -f /var/lib/clamav/files.list 2> /dev/null
 wget -N -nv $vsig_server/files.list -O /var/lib/clamav/files.list 2> /dev/null
 
 IFS=$'\n'
