@@ -175,7 +175,11 @@ class proc_client_request(Thread, Daemon):
                                         connect.send(encrypt("SRV_0000",hostname))
                                elif clean_string(msg[0:8]) == "CLNT_SCN":
                                         path = msg[8:].split('\n')[1]
-					add_scan_to_db(hostname, path, str(msg[8:].split('\n')[2]))
+					summary=""
+					for line in msg[8:].split('\n')[2:]:
+						summary=summary+line+"\n"
+
+					add_scan_to_db(hostname, path, summary)
                                         connect.send(encrypt("SRV_0000", hostname))
                                elif clean_string(msg[0:8]) == "CLNT_VSU":
                                         add_signatures_to_db(hostname, str(msg[8:]))

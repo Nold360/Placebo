@@ -4,7 +4,7 @@
 	
 	$dbhost = "localhost"; //in 99% it's localhost
 	$dbuser = "root"; //Username
-	$dbpass = ""; //Password for the user
+	$dbpass = "RootPasswd"; //Password for the user
 	$dbname = "placebo"; //name of the Database
 	
 	//Do NOT change anything under this!

@@ -59,15 +59,13 @@ form {
 #footer {
 	color: #444444;
 	clear: both;
-    font-size: 0.83em;
-    text-align: center;
+    	font-size: 0.83em;
+    	text-align: center;
 	position: absolut;
-	overflow: auto;
-	left: 0%; 
+	overflow: hidden;
 	border: solid 1px black;
-	top: 0px;
+	top: 50%;
 	width: 99.7%;
-	height: 3%;
 	float: right;
 	margin-right: 0.1%;
 	margin-top: 0.4%;
@@ -107,6 +105,20 @@ ul {
 
 #content {
 	width: 100%;
+}
+
+#signatures {
+	top: 0px;
+	float: left;
+	width: 45%;
+}
+
+#scans {
+	border-left: 2px solid #dee6ff;
+	overflow: auto;
+	float: right;
+	width: 45%;
+	margin-bottom: 10px;
 }
 
 #header {

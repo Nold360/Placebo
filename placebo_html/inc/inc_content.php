@@ -5,7 +5,8 @@ function show_client_list($hostname=null) {
 		$query="SELECT `client`.`ID` , `client`.`Hostname` , `signature`.`Date` AS signature_date
 				FROM client
 				LEFT JOIN signature ON client.ID = signature.Client_ID
-				WHERE hostname LIKE '%".$hostname."%'";
+				WHERE hostname LIKE '%".$hostname."%'
+				GROUP BY `client`.`ID`;";
 		$result = mysql_query($query);
 		
 		if(mysql_num_rows($result) == 1) { //Is there a single host 
@@ -56,16 +57,16 @@ function show_client_list($hostname=null) {
 				$color = "blue";
 				$er_text = "Unknown";
 			} else {
-				$query="SELECT report.Path, report.Date
-						FROM report
-						WHERE report.Client_ID = ".$row['ID']."
-						ORDER BY report.Date DESC
-						LIMIT 1;"; 
 				
-				$result2=mysql_query($query);
-				$last_scan=mysql_fetch_array($result2);
 			}
 		}
+		$query="SELECT report.Path, report.Date
+			FROM report
+			WHERE report.Client_ID = ".$row['ID']."
+			ORDER BY report.Date ASC 
+			LIMIT 1;"; 
+		$result2=mysql_query($query);
+		$last_scan=mysql_fetch_array($result2);
 		
 		if(empty($last_scan)) {
 			$last_scan["Path"] = "";
@@ -79,6 +80,8 @@ function show_client_list($hostname=null) {
 }
 
 function show_client_details($id, $report_id=null) {
+			include "inc_system.php";
+
 			$query = "SELECT Hostname, IP
 					  FROM client
 					  WHERE ID =".$id."
@@ -111,21 +114,32 @@ function show_client_details($id, $report_id=null) {
 			}
 			
 			//Show Signatures
-			echo "<table id=content bgcolor=#FFFFFF><tr bgcolor=#9999FF><th>Signature</th><th>Date</th>";
+			echo "<div id=content><table id=signatures bgcolor=#FFFFFF><tr bgcolor=#9999FF><th>Signature</th><th>Date</th>";
 			while(($row=mysql_fetch_array($result)) != null) {
 				echo "<tr><td>".$row["Signature"]."</td><td>".$row["Date"]."</td></tr>";
 			}
-			echo "</table><br><br>";
+			echo "</table>";
 			
 			$query = "SELECT ID, Path, Report, Date
-					  FROM report
-					  WHERE Client_ID =".$id."
+				  FROM report
+				  WHERE Client_ID =".$id."
 				  ORDER BY Date DESC;";	
 					  
 			$result=mysql_query($query);
 			
+			//Show running scan Processes
+			$ret = get_scan_processes($hostname);
+			echo "<table id=scans bgcolor=white><tr bgcolor=#9999FF><th>Running Scans:</th></tr>";
+			foreach (explode("\n", $ret) as $scan) {
+				if(!empty($scan)) {
+					echo "<tr><td><center>".$scan."</center></td></tr>";
+				}
+			}
+			echo "</table>";
+			echo "</div>";
+
 			if($_SESSION["STATUS"] == 2) {
-				echo "<form action=./backend/exec.php method=post>
+				echo "<br><br><br><br><br><br><br><br><form action=./backend/exec.php method=post>
 					<input type=hidden name=hostname value=".$hostname.">
 					Scan Path <input type=text name=path value=/> 
 					<input name=action value=scan type=hidden>
@@ -157,6 +171,7 @@ function show_client_details($id, $report_id=null) {
 				}
 			}
 			echo "</table>";
+
 }
 
 function show_passwd_form() {
@@ -232,5 +247,6 @@ function show_mod_users() {
 	}
 	echo "</table>";
 }
+
 
 ?>

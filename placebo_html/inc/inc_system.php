@@ -28,4 +28,13 @@ function add_host($hostname) {
 		return 1;
 	}
 }
+
+function get_scan_processes($hostname) {
+	if(isset($hostname)) {
+		return shell_exec("ps -ef | grep placebos2c | grep -v grep | grep -v sudo  | awk '{print $10}' | cut -f2- -d:");
+	} else {
+		return 1;
+	}
+}
+
 ?>

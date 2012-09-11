@@ -17,14 +17,13 @@ if "scan" == sys.argv[1][:4]:
 	except:
 		path = "/"	
 
-	print "Scanning Server..."
-	print "Path: "+path
+	print "Scanning: "+path
 
 elif "update" == sys.argv[1]:
-	print "Updateing Server..."
+	print "Updateing..."
 	command = "CLNT_VSU"
 elif "add" == sys.argv[1]:
-	print "Adding Server..."
+	print "Adding..."
 	command = "CLNT_NEW"
 elif "get-key" == sys.argv[1]:
 	print "Getting public-Key..."
@@ -42,6 +41,10 @@ elif port == None:
 
 
 print host+":"+str(port)+" "+command
+if command == "CLNT_SCN":
+	if len(process_exists("clamscan -i -r "+path)) > 0:
+		print "Already scanning \""+path+"\" - Exit"
+		sys.exit(1)
 
 try:
 	s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -49,7 +52,8 @@ try:
 	print "Connected..."
 
 	if command == "CLNT_SCN":
-		ret = encrypt("CLNT_SCN\n"+path+"\n"+scan_file(path))
+		msg = scan_file(path)
+		ret = encrypt("CLNT_SCN\n"+path+"\n"+msg)
 		s.send(ret)
 	elif command == "CLNT_VSU":
 		s.send(encrypt("CLNT_VSU"+update_virus_signatures()))
@@ -70,7 +74,7 @@ try:
 		if ret[:8] == "SRV_PUBK":
 			add_public_key(ret[8:])
 			print "OK"
-
+	s.close()
 except:
 	print "ERROR: Can't connect to Host!"
 	sys.exit(1)
