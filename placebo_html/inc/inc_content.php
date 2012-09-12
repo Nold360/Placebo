@@ -63,7 +63,7 @@ function show_client_list($hostname=null) {
 		$query="SELECT report.Path, report.Date
 			FROM report
 			WHERE report.Client_ID = ".$row['ID']."
-			ORDER BY report.Date ASC 
+			ORDER BY report.Date DESC
 			LIMIT 1;"; 
 		$result2=mysql_query($query);
 		$last_scan=mysql_fetch_array($result2);

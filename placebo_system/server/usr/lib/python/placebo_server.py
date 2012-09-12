@@ -3,6 +3,31 @@
 import sys, subprocess, MySQLdb,string
 
 #####################################################################################
+#Thanks to John Nielsen
+#http://code.activestate.com/recipes/408859-socketrecv-three-ways-to-turn-it-into-recvall/
+#####################################################################################
+End='EndOFTransmission'
+def recv_end(the_socket):
+	total_data=[];data=''
+	while True:
+		data=the_socket.recv(8192)
+		if End in data:
+			total_data.append(data[:data.find(End)])
+			break
+		total_data.append(data)
+		if len(total_data)>1:
+			#check if end_of_data was split
+			last_pair=total_data[-2]+total_data[-1]
+			if End in last_pair:
+				total_data[-2]=last_pair[:last_pair.find(End)]
+				total_data.pop()
+				break
+	return ''.join(total_data)
+
+def send_end(the_socket, data):
+	the_socket.send(data+End)
+
+#####################################################################################
 # Cleans a String from whitespaces
 #####################################################################################
 def clean_string(oldString):
@@ -28,8 +53,7 @@ def get_config_parameter(parameter):
 # Decrypts a message using the Private Keypair
 #####################################################################################
 def decrypt(enc_msg):
-        command = "gpg --batch --quiet --always-trust  --decrypt << EOF\n"+enc_msg+"EOF"
-
+        command = "sudo gpg --batch --quiet --always-trust --decrypt << EOF\n"+enc_msg+"\nEOF"
         proc =  subprocess.Popen(command, shell=True, stdout=subprocess.PIPE)
         return proc.communicate()[0]
 
@@ -38,12 +62,12 @@ def decrypt(enc_msg):
 # Encrypts a message using the "Placebo Server"'s PublicKey
 #####################################################################################
 def encrypt(msg,hostname):
-        command = "gpg --batch --quiet --encrypt --always-trust -a -r \""+hostname+"\"<< EOF\n"+msg+"EOF"
+        command = "sudo gpg --batch --quiet --encrypt --always-trust -a -r \""+hostname+"\"<< EOF\n"+msg+"EOF"
         proc = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE)
         return proc.communicate()[0]
 
-def add_key_to_keyring(key):
-        command = "gpg --batch --quiet -a --import << EOF\n"+key+"EOF"
+def add_public_key(key):
+        command = "sudo gpg --batch --quiet -a --import << EOF\n"+key+"EOF"
         proc = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE)
         return proc.communicate()[1]
 
@@ -60,9 +84,7 @@ def send_to_db(msg):
         return result
 
 def add_server_to_db(hostname, ip):
-	ret = send_to_db("SELECT ID FROM client WHERE Hostname = '"+hostname+"' AND IP = '"+ip+"';")
-	print "SELECT ID FROM client WHERE Hostname = '"+hostname+"' AND IP = '"+ip+"';" 
-	if ret[0][0] == None:
+	if 1==1:
         	send_to_db("INSERT INTO `client` (`ID`, `Hostname`, `IP`) VALUES (NULL, '"+str(hostname)+"', '"+str(ip)+"');")
 		return True
         else:
@@ -101,9 +123,11 @@ def host_exists(host):
 	else:
 		return True
 
+#####################################################################################
+# Returns the public-key of the client
+#####################################################################################
 def get_public_key():
-	key_file = open("/etc/placebo/keypair/server.pub", "r")
-	key = ""
-	for line in key_file:
-		key = key+line
-	return key
+        command = "sudo gpg --batch --quiet --export -a \"Placebo Server\""
+        proc = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE)
+        key = proc.communicate()[0]
+        return key

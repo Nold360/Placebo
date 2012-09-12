@@ -25,9 +25,6 @@ elif "update" == sys.argv[1]:
 elif "add" == sys.argv[1]:
 	print "Adding..."
 	command = "CLNT_NEW"
-elif "get-key" == sys.argv[1]:
-	print "Getting public-Key..."
-	command = "CLNT_GSK"
 
 host =  get_config_parameter("adm_server")
 port = int(get_config_parameter("adm_port")) 
@@ -54,26 +51,17 @@ try:
 	if command == "CLNT_SCN":
 		msg = scan_file(path)
 		ret = encrypt("CLNT_SCN\n"+path+"\n"+msg)
-		s.send(ret)
+		send_end(s,ret)
 	elif command == "CLNT_VSU":
-		s.send(encrypt("CLNT_VSU"+update_virus_signatures()))
+		send_end(s,encrypt("CLNT_VSU"+update_virus_signatures()))
 	elif command == "CLNT_NEW":
-		s.send(new_host_request())
-	elif command == "CLNT_GSK":
-		s.send(command)
-
-	ret = s.recv(65565)
-	if ret[0] == "-": #Encrypted message
-		ret = decrypt(ret)
-		if ret[:-4] != clean_string("SRV_0000"):
-			print "ERROR_CODE: "+ret[:-4]
-			sys.exit(1)
-		else:
-			print "OK"
-	else:
-		if ret[:8] == "SRV_PUBK":
+		send_end(s,"CLNT_NEW"+get_public_key())
+		ret = decrypt(recv_end(s))
+		if ret[:8] == "CLNT_NEW":
 			add_public_key(ret[8:])
-			print "OK"
+			send_end(s, "CLNT_000")
+
+	print "OK"
 	s.close()
 except:
 	print "ERROR: Can't connect to Host!"

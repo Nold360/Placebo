@@ -140,14 +140,14 @@ class Daemon:
 			try: 
 				connection,address = serversocket.accept()
 				hostname = str(get_hostname(address[0]))
-		      		new_thread = proc_client_request(connection,address[0],hostname)
-		       		new_thread.start()
+				new_thread = proc_client_request(connection,address[0],hostname)
+				new_thread.start()
 		
 			except KeyboardInterrupt:
 				print "Dying..."
 				serversocket.close()
 				sys.exit(0)
-		       
+
 		serversocket.close()
 
 
@@ -156,42 +156,44 @@ class Daemon:
 #####################################################################################
 class proc_client_request(Thread, Daemon):
 	def __init__ (self, connect, address, hostname):
-                Thread.__init__(self)
-                self.connect = connect
-                self.address = address
-                self.hostname = hostname
+		Thread.__init__(self)
+		self.connect = connect
+		self.address = address
+		self.hostname = hostname
 
-        def run(self):
-                connect = self.connect
+	def run(self):
+		connect = self.connect
 		hostname = self.hostname
 		address = self.address
-                msg = connect.recv(65565)
-                if msg[0] == "-": #Enctypted message
-                        msg = decrypt(msg)
-                        if msg != None:
-                               if clean_string(msg[0:8]) == "CLNT_NEW":
-                                        add_server_to_db(hostname, address[0])
-                                        add_key_to_keyring(str(msg[8:]))
-                                        connect.send(encrypt("SRV_0000",hostname))
-                               elif clean_string(msg[0:8]) == "CLNT_SCN":
-                                        path = msg[8:].split('\n')[1]
+		enc_msg = recv_end(connect)
+		if enc_msg.split("\n")[0] == "-----BEGIN PGP MESSAGE-----":
+			msg = decrypt(enc_msg)
+			if msg != None:
+				if clean_string(msg[0:8]) == "CLNT_SCN":
+					path = msg[8:].split('\n')[1]
 					summary=""
 					for line in msg[8:].split('\n')[2:]:
 						summary=summary+line+"\n"
 
 					add_scan_to_db(hostname, path, summary)
-                                        connect.send(encrypt("SRV_0000", hostname))
-                               elif clean_string(msg[0:8]) == "CLNT_VSU":
-                                        add_signatures_to_db(hostname, str(msg[8:]))
-                                        connect.send(encrypt("SRV_0000", hostname))
-                               else:
-                                        connect.send(encrypt("SRV_0001", hostname))
-                else: #Clean Message
-                        if clean_string(msg) == "CLNT_GSK":
-                                connect.send("SRV_PUBK"+get_public_key())
-                        else:
-                                connect.send("SRV_0001")
-                connect.close()
+					send_end(connect,encrypt("SRV_0000", hostname))
+				elif clean_string(msg[0:8]) == "CLNT_VSU":
+					add_signatures_to_db(hostname, str(msg[8:]))
+					send_end(connect, encrypt("SRV_0000", hostname))
+			else:
+				send_end(connect,(encrypt("SRV_0001", hostname)))
+		else: #Clean Message
+			if clean_string(enc_msg[:8]) == "CLNT_NEW":
+				add_server_to_db(hostname, address)
+				add_public_key(str(enc_msg[8:]))
+				send_end(connect, encrypt("CLNT_NEW"+get_public_key(),hostname))
+				#ret = decrypt(recv_end(connect))
+				#if ret == "CLNT_0000":
+				#	print "OK"
+				
+			else:
+				send_end(connect,"SRV_0001")
+		connect.close()
 
 daemon = Daemon("/var/run/placebosd.pid", "/dev/stdin", "/dev/stdout", "/dev/stderr")
 daemon.start()
