@@ -161,7 +161,6 @@ class proc_server_request(Thread):
         def run(self):
                 connect = self.connect
                 enc_msg = recv_end(connect)
-                print enc_msg
                 if enc_msg.split("\n")[0] == "-----BEGIN PGP MESSAGE-----":
                         msg = decrypt(enc_msg)
                 elif clean_string(enc_msg[:8]) == "CLNT_NEW":

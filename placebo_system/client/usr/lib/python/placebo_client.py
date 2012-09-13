@@ -103,7 +103,6 @@ def get_public_key():
 #####################################################################################
 def add_public_key(key):
 	command = "gpg  --no-verbose --quiet --batch -a --import << EOF\n"+str(key)+"EOF"
-	print key
 	proc = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE)
 	return proc.communicate()[0]	
 
