@@ -70,12 +70,11 @@ if 1 == 1:
 		#if not host_exists(host):
 		send_end(s,"CLNT_NEW"+get_public_key())
 		ret = decrypt(recv_end(s))
+		print ret[:8]
 		if ret[:8] == "CLNT_NEW":
 			add_server_to_db(host, s.getpeername()[0])
 			add_public_key(ret[8:])
-			ret = decrypt(recv_end(s))
-			if ret[:8] == "CLNT_000":
-				print "OK"
+			send_end(s,encrypt("SRV_0000", host))
 	else:
 		print "Abort!"
 		sys.exit(1)

@@ -1,6 +1,6 @@
 <?php
 	@session_start();
-	if($_SESSION["USER"] != true) {
-		@session_destroy();
-	}
+	//if($_SESSION["USER"] != true) {
+	//	@session_destroy();
+	//}
 ?>

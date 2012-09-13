@@ -156,37 +156,39 @@ class proc_server_request(Thread):
         def __init__ (self, connect):
                 Thread.__init__(self)
                 self.connect = connect
+                self.connect.settimeout(5)
 
-	def run(self):
-		connect = self.connect
-		enc_msg = recv_end(connect)
-		if enc_msg.split("\n")[0] == "-----BEGIN PGP MESSAGE-----":
-			msg = decrypt(enc_msg)
-		elif clean_string(enc_msg[:8]) == "CLNT_NEW":
-			add_public_key(enc_msg[8:])
-			send_end(connect,encrypt(get_public_key()))
-			ret = recv_end(connect)
-			if decrypt(ret) == "SRV_0000": 
-				print "OK"
-			return 0
-		else:
-			print "Error"
-			sys.exit(1)
+        def run(self):
+                connect = self.connect
+                enc_msg = recv_end(connect)
+                print enc_msg
+                if enc_msg.split("\n")[0] == "-----BEGIN PGP MESSAGE-----":
+                        msg = decrypt(enc_msg)
+                elif clean_string(enc_msg[:8]) == "CLNT_NEW":
+                        add_public_key(enc_msg[8:])
+                        send_end(connect,encrypt("CLNT_NEW"+get_public_key()))
+                        ret = recv_end(connect)
+                        if decrypt(ret)[:-4] == "SRV_0000":
+                                print "OK"
+                        return 0
+                else:
+                        print "Error"
+                        sys.exit(1)
 
-		if clean_string(msg[:8]) == "CLNT_SCN":
-			if len(process_exists("clamscan -i -r "+clean_string(msg[8:-4]))) == 0: 
-				enc_msg = encrypt("CLNT_000"+scan_file(clean_string(msg[8:-4])))
-			else:
-				enc_msg = encrypt("CLNT_100")
-			send_end(connect,enc_msg)
-		elif clean_string(msg[:8]) == "CLNT_VSU":
-			if len(process_exists("update_clam_signatures.sh")) == 0:
-				send_end(connect,encrypt("CLNT_000"+update_virus_signatures()))
-			else:
-				send_end(connect,encrypt("CLNT_100"))
-		else:
-			send_end(connect,encrypt("CLNT_001"))
-		connect.close()
+                if clean_string(msg[:8]) == "CLNT_SCN":
+                        if len(process_exists("clamscan -i -r "+clean_string(msg[8:-4]))) == 0:
+                                enc_msg = encrypt("CLNT_000"+scan_file(clean_string(msg[8:-4])))
+                        else:
+                                enc_msg = encrypt("CLNT_100")
+                        send_end(connect,enc_msg)
+                elif clean_string(msg[:8]) == "CLNT_VSU":
+                        if len(process_exists("update_clam_signatures.sh")) == 0:
+                                send_end(connect,encrypt("CLNT_000"+update_virus_signatures()))
+                        else:
+                                send_end(connect,encrypt("CLNT_100"))
+                else:
+                        send_end(connect,encrypt("CLNT_001"))
+                connect.close()
 
 
 daemon = Daemon("/var/run/placebocd.pid", "/dev/stdin", "/dev/stdout", "/dev/stderr")

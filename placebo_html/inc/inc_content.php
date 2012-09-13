@@ -2,9 +2,8 @@
 
 function show_client_list($hostname=null) {
 	if(isset($hostname)) { 
-		$query="SELECT `client`.`ID` , `client`.`Hostname` , `signature`.`Date` AS signature_date
+		$query="SELECT `client`.`ID`
 				FROM client
-				LEFT JOIN signature ON client.ID = signature.Client_ID
 				WHERE hostname LIKE '%".$hostname."%'
 				GROUP BY `client`.`ID`;";
 		$result = mysql_query($query);
@@ -16,19 +15,21 @@ function show_client_list($hostname=null) {
 		} else if(mysql_num_rows($result) == 0) { //No Hosts
 				echo "No host found!";
 				return 1;
-		} else { //More then one host without signatures
-			$query="SELECT `client`.`ID` , `client`.`Hostname` , `signature`.`Date` AS signature_date
-				FROM client
-				LEFT JOIN signature ON client.ID = signature.Client_ID
-				WHERE hostname LIKE '%".$hostname."%'
-				GROUP BY `client`.`ID`";	
 		}
-	} else { //Just list every host
-		$query="SELECT `client`.`ID` , `client`.`Hostname` , `signature`.`Date` AS signature_date
-				FROM client
-				LEFT JOIN signature ON client.ID = signature.Client_ID
-				GROUP BY `client`.`ID`;";
+	} 
+	//Just list every host/List all hosts like the given Hostname
+	if(!isset($hostname)) {
+		$hostname="";
 	}
+	$query="SELECT `client`.`ID` , `client`.`Hostname` , `signature`.`Date` AS signature_date, 
+			(SELECT report.Client_ID FROM report WHERE report.Client_ID = client.ID AND report.report LIKE '%FOUND%' LIMIT 1) AS virus,
+			(SELECT report.path FROM report WHERE report.Client_ID = client.ID ORDER BY report.Date DESC LIMIT 1) AS report_path,
+			(SELECT report.date FROM report WHERE report.Client_ID = client.ID ORDER BY report.Date DESC LIMIT 1) AS report_date	
+		FROM client
+		LEFT JOIN signature ON client.ID = signature.Client_ID
+		WHERE client.Hostname LIKE '%".$hostname."%'
+		GROUP BY `client`.`ID`;";
+	
 	
 
 	echo "<table id=content bgcolor=white><tr bgcolor=#9999FF><th>Status</th><th>Hostname</th><th>Last Scan-Path</th><th>Last Scan-Date</th><th>Signature Date</th>";
@@ -37,43 +38,16 @@ function show_client_list($hostname=null) {
 	while(($row=mysql_fetch_array($result)) != null) {
 		$color="green";
 		$er_text="OK";
-		$query="SELECT `report`.`Path` , `report`.`Report`
-				FROM report
-				WHERE ((`report`.`Client_ID` =".$row['ID'].") AND (`report`.`Report` LIKE '%FOUND%')) 
-				limit 1";
-				
-		$result2=mysql_query($query);
-		$has_virus=mysql_fetch_array($result2);
 	
-		if(isset($has_virus['Path'])) {
+		if(isset($row["virus"])) {
 			$color="red";
 			$er_text="<blink>! VIRUS !</blink>";
-		} else {
-			$query = "SELECT Report FROM report WHERE Client_ID = ".$row['ID'].";";
-			$result2 = mysql_query($query);
-			$scan = mysql_fetch_array($result2);
-			
-			if(empty($scan)) {
+		} else if(!isset($row["report_path"])) {
 				$color = "blue";
 				$er_text = "Unknown";
-			} else {
-				
-			}
-		}
-		$query="SELECT report.Path, report.Date
-			FROM report
-			WHERE report.Client_ID = ".$row['ID']."
-			ORDER BY report.Date DESC
-			LIMIT 1;"; 
-		$result2=mysql_query($query);
-		$last_scan=mysql_fetch_array($result2);
-		
-		if(empty($last_scan)) {
-			$last_scan["Path"] = "";
-			$last_scan["Date"] = "";
 		}
 
-		echo "<tr><td bgcolor=".$color."><center>".$er_text."</center></td><td><a href=./index.php?details=".$row["ID"].">".$row["Hostname"]."</a></td><td>".$last_scan["Path"]."</td><td>".$last_scan["Date"]."</td><td>".$row["signature_date"]."</td>";		
+		echo "<tr><td bgcolor=".$color."><center>".$er_text."</center></td><td><a href=./index.php?details=".$row["ID"].">".$row["Hostname"]."</a></td><td>".$row["report_path"]."</td><td>".$row["report_date"]."</td><td>".$row["signature_date"]."</td>";		
 		echo "</tr>";
 	}
 	echo '</table>';

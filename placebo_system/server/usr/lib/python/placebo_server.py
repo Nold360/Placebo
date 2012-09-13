@@ -14,7 +14,8 @@ def recv_end(the_socket):
 		if End in data:
 			total_data.append(data[:data.find(End)])
 			break
-		total_data.append(data)
+		if len(data) > 0:
+			total_data.append(data)
 		if len(total_data)>1:
 			#check if end_of_data was split
 			last_pair=total_data[-2]+total_data[-1]
@@ -47,13 +48,13 @@ def get_config_parameter(parameter):
                                 conf_file.close()
                                 return str(str(line.split("=")).split("\"")[1])
         conf_file.close()
-        return -1
+        return ""
 
 #####################################################################################
 # Decrypts a message using the Private Keypair
 #####################################################################################
 def decrypt(enc_msg):
-        command = "sudo gpg --batch --quiet --always-trust --decrypt << EOF\n"+enc_msg+"\nEOF"
+        command = "gpg --homedir="+get_config_parameter('gpg_homedir')+" --batch --quiet --always-trust --decrypt << EOF\n"+enc_msg+"\nEOF"
         proc =  subprocess.Popen(command, shell=True, stdout=subprocess.PIPE)
         return proc.communicate()[0]
 
@@ -62,12 +63,12 @@ def decrypt(enc_msg):
 # Encrypts a message using the "Placebo Server"'s PublicKey
 #####################################################################################
 def encrypt(msg,hostname):
-        command = "sudo gpg --batch --quiet --encrypt --always-trust -a -r \""+hostname+"\"<< EOF\n"+msg+"EOF"
+        command = "gpg --homedir="+get_config_parameter('gpg_homedir')+" --batch --quiet --encrypt --always-trust -a -r \""+hostname+"\"<< EOF\n"+msg+"EOF"
         proc = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE)
         return proc.communicate()[0]
 
 def add_public_key(key):
-        command = "sudo gpg --batch --quiet -a --import << EOF\n"+key+"EOF"
+        command = "gpg --homedir="+get_config_parameter('gpg_homedir')+" --batch --quiet -a --import << EOF\n"+key+"EOF"
         proc = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE)
         return proc.communicate()[1]
 
@@ -127,7 +128,7 @@ def host_exists(host):
 # Returns the public-key of the client
 #####################################################################################
 def get_public_key():
-        command = "sudo gpg --batch --quiet --export -a \"Placebo Server\""
+        command = "gpg --homedir="+get_config_parameter('gpg_homedir')+" --batch --quiet --export -a \"Placebo Server\""
         proc = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE)
         key = proc.communicate()[0]
         return key

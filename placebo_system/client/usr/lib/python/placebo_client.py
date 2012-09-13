@@ -14,7 +14,8 @@ def recv_end(the_socket):
 		if End in data:
 			total_data.append(data[:data.find(End)])
 			break
-		total_data.append(data)
+		if len(data) > 0:
+			total_data.append(data)
 		if len(total_data)>1:
 			#check if end_of_data was split
 			last_pair=total_data[-2]+total_data[-1]
@@ -67,7 +68,7 @@ def decrypt(enc_msg):
 # Encrypts a message using the "Placebo Server"'s PublicKey
 #####################################################################################
 def encrypt(msg):
-        command = "gpg --batch --quiet --encrypt -a -r \"Placebo Server\"<< EOF\n"+str(msg)+"EOF"
+        command = "gpg --batch --quiet --always-trust --encrypt -a -r \"Placebo Server\"<< EOF\n"+str(msg)+"EOF"
         proc = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE)
         return proc.communicate()[0]
 
@@ -102,6 +103,7 @@ def get_public_key():
 #####################################################################################
 def add_public_key(key):
 	command = "gpg  --no-verbose --quiet --batch -a --import << EOF\n"+str(key)+"EOF"
+	print key
 	proc = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE)
 	return proc.communicate()[0]	
 

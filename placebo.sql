@@ -35,13 +35,6 @@ CREATE TABLE IF NOT EXISTS `client` (
   PRIMARY KEY  (`ID`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=0 ;
 
---
--- Daten für Tabelle `client`
---
-
-INSERT INTO `client` (`ID`, `Hostname`, `IP`) VALUES
-(0, 'localhost', '127.0.0.1');
-
 -- --------------------------------------------------------
 
 --

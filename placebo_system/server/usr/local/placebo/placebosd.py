@@ -160,6 +160,7 @@ class proc_client_request(Thread, Daemon):
 		self.connect = connect
 		self.address = address
 		self.hostname = hostname
+		#self.connect.settimeout(5)
 
 	def run(self):
 		connect = self.connect

@@ -1,0 +1,5 @@
+DevNull isn't a real Project. It was just an idea...
+One day I thougt how nice it would be to have a "CMS" link this page is made with.
+And so I coded DevNull... You can find it in the PHP Download-Section.
+
+Version 0.1b

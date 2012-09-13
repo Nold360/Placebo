@@ -4,7 +4,7 @@ import string, os, sys, socket, subprocess
 from placebo_client import *
 
 def help():
-        print "Usage: "+sys.argv[0]+" <scan|add|update|get-key>"
+        print "Usage: "+sys.argv[0]+" <scan|add|update>"
 
 if len(sys.argv) < 2:
 	help()
@@ -47,7 +47,7 @@ try:
 	s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 	s.connect((str(host), int(port)))
 	print "Connected..."
-
+	
 	if command == "CLNT_SCN":
 		msg = scan_file(path)
 		ret = encrypt("CLNT_SCN\n"+path+"\n"+msg)
