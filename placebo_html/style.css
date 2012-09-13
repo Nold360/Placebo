@@ -95,6 +95,12 @@ li {
 	border-left: none;
 }
 
+#icon {
+	vertical-align: middle;
+	padding: 0px;
+	margin-left: 2px;
+}
+
 ul {
 	text-decoration: none;
 	list-style-type: none; 
