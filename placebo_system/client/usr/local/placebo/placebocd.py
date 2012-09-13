@@ -175,8 +175,8 @@ class proc_server_request(Thread):
                         sys.exit(1)
 
                 if clean_string(msg[:8]) == "CLNT_SCN":
-                        if len(process_exists("clamscan -i -r "+clean_string(msg[8:-4]))) == 0:
-                                enc_msg = encrypt("CLNT_000"+scan_file(clean_string(msg[8:-4])))
+                        if len(process_exists("clamscan -i -r "+clean_string(msg[8:-3]))) == 0:
+                                enc_msg = encrypt("CLNT_000"+scan_file(clean_string(msg[8:-3])))
                         else:
                                 enc_msg = encrypt("CLNT_100")
                         send_end(connect,enc_msg)

@@ -85,9 +85,14 @@ def scan_file(path):
 # Calls the Signature Update
 #####################################################################################
 def update_virus_signatures():
-        command = "/usr/local/bin/update_clam_signatures.sh"
+def update_virus_signatures():
+        if get_config_parameter("vsig_server") != None and get_config_parameter("vsig_server") != "INTERNET":
+                command = "/usr/local/bin/update_clam_signatures.sh"
+        else:
+                command = "/usr/local/bin/update_clam_signatures.sh INTERNET"
         proc = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE)
         return proc.communicate()[0]
+
 
 #####################################################################################
 # Returns the public-key of the client

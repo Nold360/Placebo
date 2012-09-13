@@ -53,36 +53,38 @@ if 1 == 1:
 	if command == "CLNT_SCN":
 		if host_exists(host):
 			send_end(s, encrypt("CLNT_SCN"+path, host))
-			print "Waiting..."
 			ret = decrypt(recv_end(s))
-			print "REPLAY: "+ret
 			if ret[:8] == "CLNT_000":
 				add_scan_to_db(host, path, ret[8:])
-
+				print "OK"
+			else:
+				print "ERROR: Client returned: "+ret[:8]
+				
 	elif command == "CLNT_VSU":
 		if host_exists(host):
 			send_end(s,encrypt("CLNT_VSU", host))
 			ret = decrypt(recv_end(s))
 			if ret[:8] == "CLNT_000":
 				add_signatures_to_db(host, ret[8:])
+				print "OK"
+			else:
+				print "ERROR: Client returned: "+ret[:8]
 
 	elif command == "CLNT_NEW":
 		#if not host_exists(host):
 		send_end(s,"CLNT_NEW"+get_public_key())
 		ret = decrypt(recv_end(s))
-		print ret[:8]
 		if ret[:8] == "CLNT_NEW":
 			add_server_to_db(host, s.getpeername()[0])
 			add_public_key(ret[8:])
 			send_end(s,encrypt("SRV_0000", host))
+		else:
+			send_end(s,encrypt("SRV_0001", host))
 	else:
 		print "Abort!"
+		help()
 		sys.exit(1)
-
-	if ret[:8]!= clean_string("CLNT_000") and (command != "CLNT_NEW" and ret[:8] != "CLNT_NEW"):
-		print "ERROR_CODE: "+ret[:-4]
-	else:
-		print "OK"
+		
 	s.close()
 #except:
 #	print "ERROR: Can't connect to Host!"
