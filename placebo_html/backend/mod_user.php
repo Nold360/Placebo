@@ -2,7 +2,7 @@
 	include "../inc/inc_user.php";
 	include "../inc/inc_config.php";
 	
-	if($_SESSION["USER"] == true) {
+	if($_SESSION["USER"] == true && $_SESSION["STATUS"] == 2) {
 		$id = $_POST["id"];
 		$username = $_POST["username"];
 		$name = $_POST["name"];

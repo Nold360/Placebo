@@ -85,7 +85,6 @@ def scan_file(path):
 # Calls the Signature Update
 #####################################################################################
 def update_virus_signatures():
-def update_virus_signatures():
         if get_config_parameter("vsig_server") != None and get_config_parameter("vsig_server") != "INTERNET":
                 command = "/usr/local/bin/update_clam_signatures.sh"
         else:

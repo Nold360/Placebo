@@ -2,7 +2,7 @@
 	include "../inc/inc_user.php";
 	include "../inc/inc_system.php";
 	
-	if($_SESSION["USER"] == true && $_SESSION["STATUS"] == 2) {
+	if($_SESSION["USER"] == true && $_SESSION["STATUS"] >= 1) {
 		if(!isset($_POST["hostname"])) {
 			header("Location: "+$_SERVER["HTTP_REFERER"]);
 		}

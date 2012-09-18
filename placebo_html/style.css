@@ -9,6 +9,7 @@ form {
 	top: 0px;
 }
 
+
 #user {
 	width: 100%;
 }
@@ -37,7 +38,7 @@ form {
 	float:left;
 	top: 0px;
 	width: 14%;
-	height: 68.8%;
+	height: 79.9%;
 	border: solid 1px #000000;
 	margin-left: 0.1%;
 	margin-top: 0.1%;
@@ -49,7 +50,7 @@ form {
 	bottom: 0px;
 	width: 14%;
 	overflow: auto;
-	height: 19%;
+	height: 8%;
 	border: solid 1px #000000;
 	border-top: solid 0px;
 	margin-left: 0.1%;
@@ -127,9 +128,14 @@ ul {
 	margin-bottom: 10px;
 }
 
+#submit {
+	background: #ddeeff;
+	border: 1px solid black;
+}
+
 #header {
-text-decoration:none;
-  color: #000000;
+	text-decoration:none;
+	color: #000000;
 }
 
 table{
@@ -143,3 +149,20 @@ td, th, tr {
 tr:hover {
 	background: lightblue;
 }
+
+#nohover {
+	background: #9999FF;	
+}
+
+#login {
+	border-left: none;
+	background: #dee6ff;
+}
+
+#delete {
+	vertical-align: middle;
+	padding: 0px;
+	float: right;
+	margin: 2px;
+}
+

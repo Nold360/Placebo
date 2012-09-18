@@ -15,12 +15,14 @@
 			show_add_host_form();	
 		} else if(isset($_GET["site"]) && $_GET["site"] == "mod_users") {
 			show_mod_users();
+		} else if(isset($_GET["site"]) && $_GET["site"] == "delete_host" && isset($_GET["id"]) && is_numeric($_GET["id"])) {
+			delete_host($_GET["id"]);
 		} else  {
 			echo "<h2>Clientlist</h2>";
 			show_client_list();
 		}
 	} else {
-		echo "Please login";
+		echo "<h2>Please login</h2>";
 	}
 	
 	echo '</div>';  

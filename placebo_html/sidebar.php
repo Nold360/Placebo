@@ -8,7 +8,7 @@
 		
 		echo "<li>";
 		while(($row=mysql_fetch_array($result)) != null) {
-			echo "<lu><img id=icon src=./gfx/computer.png> <a href=index.php?details=".$row["ID"].">".$row["Hostname"]."</a></lu><br>";
+			echo "<lu><a href=index.php?details=".$row["ID"]."><img id=icon src=./gfx/computer.png> ".$row["Hostname"]."</a></lu><br>";
 		}
 		echo "</li>";
 	} else {
