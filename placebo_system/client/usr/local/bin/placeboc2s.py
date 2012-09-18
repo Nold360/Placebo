@@ -38,29 +38,35 @@ elif port == None:
 
 
 print host+":"+str(port)+" "+command
-if command == "CLNT_SCN":
-	if len(process_exists("clamscan -i -r "+path)) > 0:
-		print "Already scanning \""+path+"\" - Exit"
-		sys.exit(1)
+if command == "CLNT_SCN" and len(process_exists("clamscan -i -r "+path)) > 0:
+	print "Already scanning \""+path+"\" - Exit"
+	sys.exit(1)
 
 try:
+	ret = None
+	if command == "CLNT_SCN":
+		msg = scan_file(path)
+		ret = encrypt("CLNT_SCN\n"+path+"\n"+msg)
+	elif command == "CLNT_VSU":
+		ret = encrypt("CLNT_VSU"+update_virus_signatures())
+	
 	s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 	s.connect((str(host), int(port)))
 	print "Connected..."
 	
-	if command == "CLNT_SCN":
-		msg = scan_file(path)
-		ret = encrypt("CLNT_SCN\n"+path+"\n"+msg)
+	if ret != None:
 		send_end(s,ret)
-	elif command == "CLNT_VSU":
-		send_end(s,encrypt("CLNT_VSU"+update_virus_signatures()))
 	elif command == "CLNT_NEW":
 		send_end(s,"CLNT_NEW"+get_public_key())
 		ret = decrypt(recv_end(s))
 		if ret[:8] == "CLNT_NEW":
 			add_public_key(ret[8:])
 			send_end(s, "CLNT_000")
-
+	else:
+		print "ERROR"
+		s.close()
+		sys.exit(1)
+		
 	print "OK"
 	s.close()
 except:

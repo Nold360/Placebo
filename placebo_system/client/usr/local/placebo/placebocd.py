@@ -177,12 +177,14 @@ class proc_server_request(Thread):
                 if clean_string(msg[:8]) == "CLNT_SCN":
                         if len(process_exists("clamscan -i -r "+clean_string(msg[8:-3]))) == 0:
                                 enc_msg = encrypt("CLNT_000"+scan_file(clean_string(msg[8:-3])))
+                                connect.send(encrypt("CLNT_DTA")
                         else:
                                 enc_msg = encrypt("CLNT_100")
                         send_end(connect,enc_msg)
                 elif clean_string(msg[:8]) == "CLNT_VSU":
                         if len(process_exists("update_clam_signatures.sh")) == 0:
                                 send_end(connect,encrypt("CLNT_000"+update_virus_signatures()))
+                                connect.send(encrypt("CLNT_DTA")
                         else:
                                 send_end(connect,encrypt("CLNT_100"))
                 else:

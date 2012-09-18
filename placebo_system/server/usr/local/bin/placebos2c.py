@@ -53,22 +53,26 @@ if 1 == 1:
 	if command == "CLNT_SCN":
 		if host_exists(host):
 			send_end(s, encrypt("CLNT_SCN"+path, host))
-			ret = decrypt(recv_end(s))
-			if ret[:8] == "CLNT_000":
-				add_scan_to_db(host, path, ret[8:])
-				print "OK"
-			else:
-				print "ERROR: Client returned: "+ret[:8]
+			ret = decrypt(s.recv(1024)) #Normal recv to prevent high-CPU load, while client is scanning...
+			if clean_string(ret) == "CLNT_DTA":
+				ret = decrypt(recv_end(s))
+				if ret[:8] == "CLNT_000":
+					add_scan_to_db(host, path, ret[8:])
+					print "OK"
+				else:
+					print "ERROR: Client returned: "+ret[:8]
 				
 	elif command == "CLNT_VSU":
 		if host_exists(host):
 			send_end(s,encrypt("CLNT_VSU", host))
-			ret = decrypt(recv_end(s))
-			if ret[:8] == "CLNT_000":
-				add_signatures_to_db(host, ret[8:])
-				print "OK"
-			else:
-				print "ERROR: Client returned: "+ret[:8]
+			ret = decrypt(s.recv(1024)) #Normal recv to prevent high-CPU load, while client is updating...
+			if clean_string(ret) == "CLNT_DTA":
+				ret = decrypt(recv_end(s))
+				if ret[:8] == "CLNT_000":
+					add_signatures_to_db(host, ret[8:])
+					print "OK"
+				else:
+					print "ERROR: Client returned: "+ret[:8]
 
 	elif command == "CLNT_NEW":
 		#if not host_exists(host):
