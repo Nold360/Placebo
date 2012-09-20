@@ -23,6 +23,8 @@
 		}
 	} else {
 		echo "<h2>Please login</h2>";
+		
+		show_login_form();
 	}
 	
 	echo '</div>';  

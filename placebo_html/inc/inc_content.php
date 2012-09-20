@@ -248,4 +248,14 @@ function delete_host($id) {
 	echo "<td id=login><form action=".$_SERVER["HTTP_REFERER"]." method=post><input style='background: lightgreen;' type=submit id=submit value=No></form></td></tr></table>";
 }
 
+function show_login_form() {
+        echo("  <form action=./backend/login.php method=post>
+                <table border=0>
+                <tr id=login><td id=login width=35%>Username</td><td id=login><input type=text name=username></td></tr>
+                <tr id=login><td id=login>Password</td><td id=login><input type=password name=password></td></tr>
+                <tr id=login><td id=login></td><td id=login><input id=submit type=submit value=Login></td></tr>
+                </form></table>");
+
+}
+
 ?>
