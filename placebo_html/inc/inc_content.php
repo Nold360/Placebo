@@ -130,7 +130,11 @@ function show_client_details($id, $report_id=null) {
 			}
 			
 			//Show Scan-Reports
-			echo "<table id=content bgcolor=white><tr bgcolor=#9999FF id=nohover><th width=1px>Rescan</th><th width=20%>Scan-Path</th><th width=20%>Date</th><th>Report</th></tr>";
+			echo "<table id=content bgcolor=white><tr bgcolor=#9999FF id=nohover><th width=1px>Rescan</th><th width=20%>Scan-Path</th><th width=20%>Date</th><th>Report</th>";
+			if(isset($report_id) && is_numeric($report_id) && $_SESSION["STATUS"] == 2) {
+				echo "<th>Delete</th>";
+			}
+			echo "</tr>";
 			while(($row=mysql_fetch_array($result)) != null) {
 				if(strpos($row["Report"], "FOUND")) {
 					$color = "#FF3700";
@@ -149,12 +153,24 @@ function show_client_details($id, $report_id=null) {
 				} 
 
 				if(isset($report_id) && $report_id == $row["ID"]) {
-					echo "<td>".$row["Path"]."</td><td align=center>".$row["Date"]."</td><td>".str_replace("\n", "<br>", $row["Report"])."</td></tr>";
+					echo "<td>".$row["Path"]."</td><td align=center>".$row["Date"]."</td><td>".str_replace("\n", "<br>", $row["Report"])."</td>";
+					if($_SESSION["STATUS"] == 2) {
+						echo "<td width=1%><form action=./backend/mysql_exec.php method=post>
+                                        		<input type=hidden name=id value=".$row['ID'].">
+                                        		<input name=action value=del_report type=hidden>
+                                        		<button type=submit id=submit><img style='vertical-align: top;' src=./gfx/delete.png></button></form></td>";
+					}		
+					echo "</tr>";
 				} else {
 					echo "<td>".$row["Path"]."</td><td align=center>".$row["Date"]."</td><td>
 						<form action=index.php method=get><input type=hidden name=details value=".$id.">
 						<input type=hidden name=report_id value=".$row["ID"].">
-						<button type=submit id=submit><img style='vertical-align: top;' src=./gfx/info.png> Show Report</button></form></td></tr>";
+						<button type=submit id=submit><img style='vertical-align: top;' src=./gfx/info.png> Show Report</button></form></td>";
+						
+					if($_SESSION["STATUS"] == 2) {
+						echo "<td></td>";
+					}
+					echo "</tr>";
 				}
 			}
 			echo "</table>";
@@ -163,10 +179,21 @@ function show_client_details($id, $report_id=null) {
 
 function show_passwd_form() {
 	echo "<h2>Change Password</h2>";
-	echo "<form id=pwChange action=./backend/change_password.php method=post>";
-	echo "Old Password: &nbsp;&nbsp;<input type=password name=oldPassword>";
-	echo "<br>New Password: <input type=password name=newPassword>";
-	echo "<br><input id=submit type=submit value=Change></form>";	
+	if(isset($_GET["ret"])) {
+		if($_GET["ret"] == 2) {
+			echo "Old Password didn't match!<br><br>";
+		} else if($_GET["ret"] == 1) {
+			echo "Something of your input didn't match!<br><br>";
+		} else if($_GET["ret"] == 0) {
+			echo "Password changed successfully!<br><br>";
+		}
+	}
+	echo "<form id=pwChange action=./backend/mod_user.php method=post><table border=2 bordercolor=#dee6ff>";
+	echo "<tr><td>Password:</td><td><input type=password name=oldPassword1></td></tr>";
+	echo "<tr><td>Repeat Password:</td><td><input type=password name=oldPassword2></td></tr>";
+	echo "<tr><td>New Password:</td><td><input type=password name=newPassword></td></tr>";
+	echo "<tr><td><input type=hidden name=action value=change_passwd></td>";
+	echo "<td><input id=submit type=submit value=Change></form></td></tr></table>";	
 }
 
 function show_search_form($hostname) {
@@ -241,8 +268,9 @@ function delete_host($id) {
 
 	echo "<h2>Delete Host</h2>";
 	echo "Are you shure that you want to delete the Host: ".$row["Hostname"]."?<br><br>";
-	echo "<table><tr id=login><td id=login><form action=./backend/del_host.php method=post>
+	echo "<table><tr id=login><td id=login><form action=./backend/mysql_exec.php method=post>
         <input type=hidden name=id value=".$id.">
+        <input type=hidden name=action value=del_host>
 	<input style='background: red;' type=submit value='Yes' id=submit>
 	</form></td><td id=login width=50px></td>"; 
 	echo "<td id=login><form action=".$_SERVER["HTTP_REFERER"]." method=post><input style='background: lightgreen;' type=submit id=submit value=No></form></td></tr></table>";

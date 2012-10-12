@@ -185,13 +185,12 @@ class proc_client_request(Thread, Daemon):
 				send_end(connect,(encrypt("SRV_0001", hostname)))
 		else: #Clean Message
 			if clean_string(enc_msg[:8]) == "CLNT_NEW":
-				add_server_to_db(hostname, address)
-				add_public_key(str(enc_msg[8:]))
-				send_end(connect, encrypt("CLNT_NEW"+get_public_key(),hostname))
-				#ret = decrypt(recv_end(connect))
-				#if ret == "CLNT_0000":
-				#	print "OK"
-				
+				if not host_exists(hostname):
+					add_server_to_db(hostname, address)
+					add_public_key(str(enc_msg[8:]))
+					send_end(connect, encrypt("CLNT_NEW"+get_public_key(),hostname))
+				else:
+					send_end(connect, encrypt("SRV_5001",hostname))	
 			else:
 				send_end(connect,"SRV_0001")
 		connect.close()

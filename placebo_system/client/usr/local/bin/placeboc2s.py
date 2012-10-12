@@ -62,12 +62,13 @@ try:
 		if ret[:8] == "CLNT_NEW":
 			add_public_key(ret[8:])
 			send_end(s, "CLNT_000")
+		else:
+			print "ERROR: "+ret[:-4]
 	else:
 		print "ERROR"
 		s.close()
 		sys.exit(1)
 		
-	print "OK"
 	s.close()
 except:
 	print "ERROR: Can't connect to Host!"

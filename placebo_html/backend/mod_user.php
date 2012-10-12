@@ -1,7 +1,7 @@
 <?php
 	include "../inc/inc_user.php";
 	include "../inc/inc_config.php";
-	
+
 	if($_SESSION["USER"] == true && $_SESSION["STATUS"] == 2) {
 		$id = $_POST["id"];
 		$username = $_POST["username"];
@@ -49,7 +49,23 @@
 				}
 			}
 		}
-	}
-	
-	header("Location: ".$_SERVER["HTTP_REFERER"]);
+	} else if($_POST["action"]=="change_passwd" && isset($_POST["oldPassword1"]) && isset($_POST["oldPassword2"])  && isset($_POST["newPassword"])) {
+		if(trim($_POST["oldPassword1"]) == trim($_POST["oldPassword2"])) {
+			$id = $_SESSION["USERID"];
+			$query = "SELECT Password from user WHERE ID = ".$_SESSION["USERID"]." LIMIT 1;";
+			$row = mysql_fetch_array(mysql_query($query));
+			if($row["Password"] == sha1(trim($_POST["oldPassword1"]))) {
+				$query = "UPDATE `placebo`.`user` SET `Password` = '".sha1($_POST['newPassword'])."'
+                	                  WHERE `user`.`ID` = ".$id."
+                	                  LIMIT 1 ;";
+				mysql_query($query);
+				$RET=0;
+			} else {
+				$RET=1;
+			}
+		} else {
+			$RET=2;
+		}
+	} 	
+	header("Location: ".$_SERVER["HTTP_REFERER"]."&ret=".$RET);
 ?>

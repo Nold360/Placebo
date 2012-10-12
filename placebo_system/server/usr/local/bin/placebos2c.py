@@ -54,7 +54,7 @@ if 1 == 1:
 		if host_exists(host):
 			send_end(s, encrypt("CLNT_SCN"+path, host))
 			ret = decrypt(s.recv(1024)) #Normal recv to prevent high-CPU load, while client is scanning...
-			if clean_string(ret) == "CLNT_DTA":
+			if clean_string(ret[:-4]) == "CLNT_DTA":
 				ret = decrypt(recv_end(s))
 				if ret[:8] == "CLNT_000":
 					add_scan_to_db(host, path, ret[8:])
@@ -66,8 +66,9 @@ if 1 == 1:
 		if host_exists(host):
 			send_end(s,encrypt("CLNT_VSU", host))
 			ret = decrypt(s.recv(1024)) #Normal recv to prevent high-CPU load, while client is updating...
-			if clean_string(ret) == "CLNT_DTA":
+			if clean_string(ret[:-4]) == "CLNT_DTA":
 				ret = decrypt(recv_end(s))
+				print ret
 				if ret[:8] == "CLNT_000":
 					add_signatures_to_db(host, ret[8:])
 					print "OK"
@@ -75,15 +76,19 @@ if 1 == 1:
 					print "ERROR: Client returned: "+ret[:8]
 
 	elif command == "CLNT_NEW":
-		#if not host_exists(host):
-		send_end(s,"CLNT_NEW"+get_public_key())
-		ret = decrypt(recv_end(s))
-		if ret[:8] == "CLNT_NEW":
-			add_server_to_db(host, s.getpeername()[0])
-			add_public_key(ret[8:])
-			send_end(s,encrypt("SRV_0000", host))
+		if not host_exists(host):
+			send_end(s,"CLNT_NEW"+get_public_key())
+			ret = decrypt(recv_end(s))
+			if ret[:8] == "CLNT_NEW":
+				add_server_to_db(host, s.getpeername()[0])
+				add_public_key(ret[8:])
+				send_end(s,encrypt("SRV_0000", host))
+			else:
+				send_end(s,encrypt("SRV_0001", host))
 		else:
-			send_end(s,encrypt("SRV_0001", host))
+			print "Abort! Client already exists!"
+			s.close()
+			sys.exit(2)
 	else:
 		print "Abort!"
 		help()

@@ -14,7 +14,7 @@
 			update_host($_POST["hostname"]);
 		} else if($_POST["action"] == "add") {
 			add_host($_POST["hostname"]);
-		} 	
+		} 
 	}	
 	header("Location: ".$_SERVER['HTTP_REFERER']);
 ?>

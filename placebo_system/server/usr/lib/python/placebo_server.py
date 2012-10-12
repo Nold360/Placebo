@@ -54,7 +54,7 @@ def get_config_parameter(parameter):
 # Decrypts a message using the Private Keypair
 #####################################################################################
 def decrypt(enc_msg):
-        command = "gpg --homedir="+get_config_parameter('gpg_homedir')+" --batch --quiet --always-trust --decrypt << EOF\n"+enc_msg+"\nEOF"
+        command = "gpg --no-permission-warning --homedir="+get_config_parameter('gpg_homedir')+" --batch --quiet --always-trust --decrypt << EOF\n"+enc_msg+"\nEOF"
         proc =  subprocess.Popen(command, shell=True, stdout=subprocess.PIPE)
         return proc.communicate()[0]
 
@@ -63,15 +63,21 @@ def decrypt(enc_msg):
 # Encrypts a message using the "Placebo Server"'s PublicKey
 #####################################################################################
 def encrypt(msg,hostname):
-        command = "gpg --homedir="+get_config_parameter('gpg_homedir')+" --batch --quiet --encrypt --always-trust -a -r \""+hostname+"\"<< EOF\n"+msg+"EOF"
+        command = "gpg --no-permission-warning --homedir="+get_config_parameter('gpg_homedir')+" --batch --quiet --encrypt --always-trust -a -r \""+hostname+"\"<< EOF\n"+msg+"EOF"
         proc = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE)
         return proc.communicate()[0]
 
+#####################################################################################
+# Adds PublicKey to Keychain 
+#####################################################################################
 def add_public_key(key):
-        command = "gpg --homedir="+get_config_parameter('gpg_homedir')+" --batch --quiet -a --import << EOF\n"+key+"EOF"
+        command = "gpg --no-permission-warning --homedir="+get_config_parameter('gpg_homedir')+" --batch --quiet -a --import << EOF\n"+key+"EOF"
         proc = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE)
         return proc.communicate()[1]
 
+#####################################################################################
+# Executes a mysql Statement and returns answer
+#####################################################################################
 def send_to_db(msg):
         conn = MySQLdb.connect (host = get_config_parameter("mysql_host"),
                                 user = get_config_parameter("mysql_user"),
@@ -84,6 +90,9 @@ def send_to_db(msg):
         conn.close()
         return result
 
+#####################################################################################
+# Adding Server to DB
+#####################################################################################
 def add_server_to_db(hostname, ip):
 	if 1==1:
         	send_to_db("INSERT INTO `client` (`ID`, `Hostname`, `IP`) VALUES (NULL, '"+str(hostname)+"', '"+str(ip)+"');")
@@ -91,6 +100,9 @@ def add_server_to_db(hostname, ip):
         else:
 		return False
 
+#####################################################################################
+# Adding Scan-Summary to DB 
+#####################################################################################
 def add_scan_to_db(hostname, path, report):
         id = send_to_db("SELECT ID FROM client WHERE Hostname = '"+hostname+"';")
         if id[0][0] != None:
@@ -100,6 +112,9 @@ def add_scan_to_db(hostname, path, report):
                 return False
         return True
 
+#####################################################################################
+# Adding Signatures+Dates to DB 
+#####################################################################################
 def add_signatures_to_db(hostname, signatures):
         id = send_to_db("SELECT ID FROM client WHERE Hostname = '"+hostname+"';")
         if id[0][0] != None:
@@ -111,24 +126,32 @@ def add_signatures_to_db(hostname, signatures):
         	return False
         return True
 
-
+#####################################################################################
+# returns hostname using System-DNS 
+#####################################################################################
 def get_hostname(ip):
         command = "host "+ip+" | cut -f5 -d' '| cut -f1 -d."
         proc = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE)
         return clean_string(proc.communicate()[0])
 
+#####################################################################################
+# Returns True if host is already added to DB 
+#####################################################################################
 def host_exists(host):
-	hostname = send_to_db("SELECT Hostname FROM client WHERE Hostname = '"+host+"';")
-	if hostname[0][0] != host:
+	try:
+		hostname = send_to_db("SELECT Hostname FROM client WHERE Hostname = '"+host+"';")
+		if hostname[0][0] != host:
+			return False
+		else:
+			return True
+	except:
 		return False
-	else:
-		return True
 
 #####################################################################################
-# Returns the public-key of the client
+# Returns the public-key of the server 
 #####################################################################################
 def get_public_key():
-        command = "gpg --homedir="+get_config_parameter('gpg_homedir')+" --batch --quiet --export -a \"Placebo Server\""
+        command = "gpg --no-permission-warning --homedir="+get_config_parameter('gpg_homedir')+" --batch --quiet --export -a \"Placebo Server\""
         proc = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE)
         key = proc.communicate()[0]
         return key

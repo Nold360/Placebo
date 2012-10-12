@@ -59,7 +59,7 @@ def get_config_parameter(parameter):
 # Decrypts a message using the Private Keypair
 #####################################################################################
 def decrypt(enc_msg):
-        command = "gpg --batch --quiet --decrypt << EOF\n"+enc_msg+"EOF"
+        command = "gpg --batch --quiet --decrypt -a -r $(hostname) << EOF\n"+enc_msg+"EOF"
         proc =  subprocess.Popen(command, shell=True, stdout=subprocess.PIPE)
         return proc.communicate()[0]
 
@@ -106,9 +106,15 @@ def get_public_key():
 # add's a public key to keychain
 #####################################################################################
 def add_public_key(key):
-	command = "gpg  --no-verbose --quiet --batch -a --import << EOF\n"+str(key)+"EOF"
+	command = "gpg --list-keys 'Placebo Server' &> /dev/null"
 	proc = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE)
-	return proc.communicate()[0]	
+	
+	if proc.communicate()[0] != 0:
+		command = "gpg  --no-verbose --quiet --batch -a --import << EOF\n"+str(key)+"EOF"
+		proc = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE)
+		return proc.communicate()[0]	
+	else:
+		return 1
 
 #####################################################################################
 # Checkes Processes for running scans, updates,...

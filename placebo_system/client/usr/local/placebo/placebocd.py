@@ -164,35 +164,42 @@ class proc_server_request(Thread):
                 if enc_msg.split("\n")[0] == "-----BEGIN PGP MESSAGE-----":
                         msg = decrypt(enc_msg)
                 elif clean_string(enc_msg[:8]) == "CLNT_NEW":
-                        add_public_key(enc_msg[8:])
-                        send_end(connect,encrypt("CLNT_NEW"+get_public_key()))
-                        ret = recv_end(connect)
-                        if decrypt(ret)[:-4] == "SRV_0000":
-                                print "OK"
-                        return 0
+                        added = add_public_key(enc_msg[8:])
+			if added == 0:
+                        	send_end(connect,encrypt("CLNT_NEW"+get_public_key()))
+                        	ret = recv_end(connect)
+				print decrypt(ret)
+                        	if decrypt(ret)[:-4] == "SRV_0000":
+                        	        print "OK"
+                        	return 0
+			else: #If Server already added this Client
+                        	send_end(connect,encrypt("CLNT_115"))
                 else:
                         print "Error"
                         sys.exit(1)
 
                 if clean_string(msg[:8]) == "CLNT_SCN":
-                        if len(process_exists("clamscan -i -r "+clean_string(msg[8:-3]))) == 0:
-                                enc_msg = encrypt("CLNT_000"+scan_file(clean_string(msg[8:-3])))
-                                connect.send(encrypt("CLNT_DTA")
+                        if len(process_exists("clamscan -i -r "+clean_string(msg[8:-4]))) == 0:
+                                enc_msg = encrypt("CLNT_000"+scan_file(clean_string(msg[8:-4])))
+                                connect.send(encrypt("CLNT_DTA"))
                         else:
                                 enc_msg = encrypt("CLNT_100")
-                        send_end(connect,enc_msg)
+                        time.sleep(1)
+			send_end(connect,enc_msg)
                 elif clean_string(msg[:8]) == "CLNT_VSU":
                         if len(process_exists("update_clam_signatures.sh")) == 0:
-                                send_end(connect,encrypt("CLNT_000"+update_virus_signatures()))
-                                connect.send(encrypt("CLNT_DTA")
+                                enc_msg = encrypt("CLNT_000"+update_virus_signatures())
+                                connect.send(encrypt("CLNT_DTA"))
                         else:
-                                send_end(connect,encrypt("CLNT_100"))
+                                enc_msg=encrypt("CLNT_100")
+			time.sleep(1)
+			send_end(connect,enc_msg)
                 else:
                         send_end(connect,encrypt("CLNT_001"))
                 connect.close()
 
 
-daemon = Daemon("/var/run/placebocd.pid", "/dev/stdin", "/dev/stdout", "/dev/stderr")
+daemon = Daemon("/var/run/placebocd.pid", "/dev/stdin", "/dev/stdout", "/var/log/placebo_client.log")
 daemon.start()
 
 
