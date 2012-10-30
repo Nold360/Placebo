@@ -108,6 +108,7 @@ def add_scan_to_db(hostname, path, report):
         if id[0][0] != None:
 		send_to_db("DELETE FROM `report` WHERE Client_ID = "+str(id[0][0])+" and path = '"+str(path)+"' limit 1;")
                 send_to_db("INSERT INTO `report` (`Client_ID`, `Report`, `Path`) VALUES ('"+str(id[0][0])+"', '"+str(report)+"', '"+str(path)+"');")
+		add_status_to_db(hostname, "OK")
         else:
                 return False
         return True
@@ -122,9 +123,34 @@ def add_signatures_to_db(hostname, signatures):
 			if clean_string(signature) != "":
                         	send_to_db("DELETE FROM `signature` WHERE Client_ID = "+str(id[0][0])+" AND Signature = '"+str(clean_string(signature.split(";")[0]))+"';")
                         	send_to_db("INSERT INTO `signature` (`Client_ID`, `Signature`, `Date`) VALUES ('"+str(id[0][0])+"', '"+str(clean_string(signature.split(";")[0]))+"', '"+str(signature.split(";")[1])+"');")
+		add_status_to_db(hostname, "OK")
         else:
         	return False
         return True
+
+#####################################################################################
+# Adding Client Status to DB 
+#####################################################################################
+def add_status_to_db(hostname, status):
+	if status.find("socket.timeout") >= 0 or status.find("socket.error") >= 0:
+		status_level=2
+	elif status.find("CLNT_999") >= 0:
+		status_level=1
+	elif status.find("OK") >= 0:
+		status_level=0
+	else:
+		return False
+	
+	id = send_to_db("SELECT ID FROM client WHERE Hostname = '"+hostname+"';")
+        if id[0][0] != None:
+		try:
+			exists = send_to_db("SELECT ID FROM status WHERE Client_ID = "+str(id[0][0])+";")[0][0]	
+			send_to_db("UPDATE status SET `Status` = '"+str(status_level)+"' WHERE `Client_ID` = "+str(id[0][0])+";")
+		except:
+			send_to_db("INSERT INTO `status` (`ID`, `Client_ID`, `Status`) VALUES (NULL , '"+str(id[0][0])+"', '"+str(status_level)+"');")
+	else:
+		return False
+	return True
 
 #####################################################################################
 # returns hostname using System-DNS 

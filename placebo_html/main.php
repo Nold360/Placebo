@@ -17,6 +17,8 @@
 			show_mod_users();
 		} else if(isset($_GET["site"]) && $_GET["site"] == "delete_host" && isset($_GET["id"]) && is_numeric($_GET["id"])) {
 			delete_host($_GET["id"]);
+		} else if(isset($_GET["site"]) && $_GET["site"] == "client_config") {
+			show_client_config($_POST["hostname"]);
 		} else  {
 			echo "<h2>Clientlist</h2>";
 			show_client_list();

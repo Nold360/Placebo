@@ -138,10 +138,13 @@ ul {
 	color: #000000;
 }
 
+form {
+	display: inline;
+}
+
 table{
 	border-collapse:collapse;
 }
-
 td, th, tr {
 	border-left: 1px solid black;
 }
@@ -166,3 +169,22 @@ tr:hover {
 	margin: 2px;
 }
 
+a.info span
+{
+	display: none;
+}
+
+a.info:hover span
+{
+	display:block;
+	position:absolute;
+	top:2em;
+	left:20em;
+	width:15em;
+	border:1px solid #000000;
+	background-color:lightblue;
+	color:#000;
+	text-align: center;
+	padding:0px;
+	font-size: 0.8em;
+}

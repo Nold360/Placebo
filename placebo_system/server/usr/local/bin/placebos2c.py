@@ -12,7 +12,7 @@ import string, os, sys, socket, subprocess
 from placebo_server import *
 
 def help():
-	print "Usage: "+sys.argv[0]+" <scan|add|update> <hostname>"
+	print "Usage: "+sys.argv[0]+" <scan|add|update|get|set|ping> <hostname>"
 
 if len(sys.argv) < 3:
 	help()
@@ -36,6 +36,33 @@ elif "add" == sys.argv[1]:
 	print "Adding Client..."
 	command = "CLNT_NEW"
 
+elif "get" == sys.argv[1][:3]:
+        command = "CLNT_GET"
+        try:
+                parameter = str(sys.argv[1]).split(":")[1]
+        except:
+                print "You must enter enter a parameter name! f.e.: get:adm_server"
+		sys.exit(1)
+
+	print "Get Paramter: "+parameter
+
+elif "set" == sys.argv[1][:3]:
+        command = "CLNT_SET"
+        try:
+                parameter = str(sys.argv[1]).split(":")[1].split("=")[0]
+                value = str(sys.argv[1]).split(":", 1)[1].split("=",1)[1]
+        except:
+                print "You must enter enter a parameter name and value! f.e.: set:adm_server=127.0.0.1"
+		sys.exit(1)
+	
+	print "Set Parameter "+parameter+" to "+value
+
+elif "ping" == sys.argv[1][:4]:
+	print "Trying to connect to host..."
+	command = "CLNT_PIG"
+
+print command
+
 host = sys.argv[2]
 if len(sys.argv) > 3:
 	port = sys.argv[3]
@@ -46,8 +73,18 @@ print host+":"+str(port)+" "+command
 
 if 1 == 1:
 #try:
-	s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-	s.connect((str(host), int(port)))
+	try:
+		s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+		s.settimeout(10)
+		s.connect((str(host), int(port)))
+		s.settimeout(0)
+		s.setblocking(1)
+	except:
+		print  "Error: "+str(sys.exc_info()[0]) 
+		if command == "CLNT_PIG":
+			add_status_to_db(host, "socket.error")
+		sys.exit(1)
+
 	print "Connected..."
 
 	if command == "CLNT_SCN":
@@ -89,6 +126,43 @@ if 1 == 1:
 			print "Abort! Client already exists!"
 			s.close()
 			sys.exit(2)
+
+	elif command == "CLNT_GET":
+		if host_exists(host):
+			send_end(s,encrypt("CLNT_GET"+parameter, host))
+			ret = decrypt(recv_end(s))
+			
+			if ret != "CLNT_401":
+				print ret[:-4]
+			else:
+				print "ERROR: CLNT_401: No such Parameter"
+				s.close()
+				sys.exit(1)
+
+	elif command == "CLNT_SET":
+		if host_exists(host):
+			send_end(s,encrypt("CLNT_SET"+parameter+"="+str(value), host))
+			ret = decrypt(recv_end(s))[:-4]
+			
+			if ret == "CLNT_000":
+				print "Success: Paramter "+parameter+" has been set to "+str(value)+"!"
+			else:
+				print "ERROR: "+ret+": No such Parameter"
+				s.close()
+				sys.exit(1)
+
+	elif command == "CLNT_PIG":
+		if host_exists(host):
+			send_end(s,encrypt("CLNT_PIG", host))
+			ret = recv_end(s)
+			if ret[:4] == "----":
+				ret = decrypt(ret)
+			if ret[:-4] == "CLNT_POG":
+				print "OK"
+				ret="OK"
+			else:
+				print "ERROR: "+ret
+			add_status_to_db(host, ret)	
 	else:
 		print "Abort!"
 		help()

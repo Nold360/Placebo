@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import string, sys, subprocess
+import fileinput, string, sys, subprocess
 
 #####################################################################################
 #Thanks to John Nielsen
@@ -54,6 +54,19 @@ def get_config_parameter(parameter):
         conf_file.close()
         return -1
 
+#####################################################################################
+# Reads Config and returns a fitting parameter or -1
+#####################################################################################
+def set_config_parameter(parameter, value):
+	old_value=get_config_parameter(parameter)
+	ret=-1
+	for line in fileinput.input("/etc/placebo/client.conf",inplace=1):
+                if line[0] != "#":
+                        if line.find(parameter) >= 0:
+				line = parameter+"="+"\""+value+"\"\n"
+				ret=0
+		sys.stdout.write(line)
+        return ret 
 
 #####################################################################################
 # Decrypts a message using the Private Keypair
@@ -124,3 +137,11 @@ def process_exists(string):
 	proc = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE)
 	return proc.communicate()[0]
 
+
+#####################################################################################
+# Checkes if the client is already registered to a admin server 
+#####################################################################################
+def is_registered():
+	command = "gpg --list-keys \"Placebo Server\""
+	proc = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE)
+	return proc.communicate()[0]

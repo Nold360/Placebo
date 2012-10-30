@@ -24,15 +24,17 @@ function show_client_list($hostname=null) {
 	$query="SELECT `client`.`ID` , `client`.`Hostname` , `signature`.`Date` AS signature_date, 
 			(SELECT report.Client_ID FROM report WHERE report.Client_ID = client.ID AND report.report LIKE '%FOUND%' LIMIT 1) AS virus,
 			(SELECT report.path FROM report WHERE report.Client_ID = client.ID ORDER BY report.Date DESC LIMIT 1) AS report_path,
-			(SELECT report.date FROM report WHERE report.Client_ID = client.ID ORDER BY report.Date DESC LIMIT 1) AS report_date	
+			(SELECT report.date FROM report WHERE report.Client_ID = client.ID ORDER BY report.Date DESC LIMIT 1) AS report_date,	
+			(SELECT status.status FROM status WHERE status.Client_ID = client.ID LIMIT 1) AS status
 		FROM client
 		LEFT JOIN signature ON client.ID = signature.Client_ID
+		LEFT JOIN status ON client.ID = status.Client_ID
 		WHERE client.Hostname LIKE '%".$hostname."%'
 		GROUP BY `client`.`ID`;";
 	
 	
 
-	echo "<table id=content bgcolor=white><tr bgcolor=#9999FF id=nohover><th>Status</th><th>Hostname</th><th>Last Scan-Path</th><th>Last Scan-Date</th><th>Signature Date</th>";
+	echo "<table id=content bgcolor=white><tr bgcolor=#9999FF id=nohover><th width=1%>Status<th width=1%>Virus</th></th><th>Hostname</th><th>Last Scan-Path</th><th>Last Scan-Date</th><th>Signature Date</th>";
 	
 	$result=mysql_query($query);
 	while(($row=mysql_fetch_array($result)) != null) {
@@ -45,9 +47,16 @@ function show_client_list($hostname=null) {
 		} else if(!isset($row["report_path"])) {
 				$color = "#0099FF";
 				$er_text = "Unknown";
+		} 
+
+		switch($row["status"]) {
+			case null: $status_color="#0099FF"; $status_img="./gfx/new.png"; $status_alt="No Status"; break;
+			case 0: $status_color="#009911"; $status_img="./gfx/ok.png"; $status_alt="Connection OK"; break; //OK
+			case 1: $status_color="yellow"; $status_img="./gfx/important.png"; $status_alt="Access denied!"; break; //Access Denied
+			case 2: $status_color="#FF3700"; $status_img="./gfx/error.png"; $status_alt="No Connection to host!"; break; //Connection Timeout
 		}
 
-		echo "<tr><td bgcolor=".$color." align=center>".$er_text."</td><td align=center><a href=./index.php?details=".$row["ID"].">".$row["Hostname"]."</a></td>
+		echo "<tr><td align=center bgcolor=".$status_color."><a class=info href=#><img id=icon alt=".$status_alt." src=".$status_img."></img><span>".$status_alt."</span></a></td><td bgcolor=".$color." align=center>".$er_text."</td><td align=center><a href=./index.php?details=".$row["ID"].">".$row["Hostname"]."</a></td>
 			<td>".$row["report_path"]."</td><td align=center>".$row["report_date"]."</td><td align=center>".$row["signature_date"]."</td>";		
 		echo "</tr>";
 	}
@@ -73,11 +82,34 @@ function show_client_details($id, $report_id=null) {
 				echo "<br><a href=index.php>Back</a>";
 				return 1;
 			}
+		
+			$query = "SELECT status
+                                  FROM status
+                                  WHERE Client_ID =".$id."
+                                  LIMIT 1;";
 
-			echo "<h2 style='margin-bottom: 0px'>Details of ".$hostname."</h2>";	
+                        $result=mysql_query($query);
+                        $row=mysql_fetch_array($result);
+		
+			switch($row["status"]) {
+				case null: $status_color="#0099FF"; $status_img="./gfx/new.png"; $status_alt="No Status"; break;
+				case 0: $status_color="#009911"; $status_img="./gfx/ok.png"; $status_alt="Connection OK"; break; //OK
+				case 1: $status_color="yellow"; $status_img="./gfx/important.png"; $status_alt="Access denied!"; break; //Access Denied
+				case 2: $status_color="#FF3700"; $status_img="./gfx/error.png"; $status_alt="No Connection to host!"; break; //Connection Timeout
+			}
+
+			echo "<h2 style='margin-bottom: 0px'>Details of ".$hostname." <img alt=".$status_alt." src=".$status_img."></img></h2>";	
 			echo "<div id=content style='border-bottom: 1px solid black;'><a title='Back to List' href=index.php><img alt='Index' id=icon style='margin-bottom: 2px;' src=./gfx/home.png>
-				</a> &rarr; <img id=icon style='margin-bottom: 2px;' src=./gfx/computer.png> <b>".$hostname."</b> (".$ip.")";
+				</a> &rarr; <a href=index.php?details=".$id."><img id=icon style='margin-bottom: 2px;' src=./gfx/computer.png> <b>".$hostname."</b></a> (".$ip.")";
 			
+			if($_SESSION["STATUS"] >= 1) {
+				echo "<form action=./backend/exec.php method=post><input name=hostname type=hidden value=".$hostname.">
+					<input name=action value=update type=hidden><button id=submit type=submit><img style='vertical-align: top;' src=./gfx/reload.png> Update Signatures</button></form>";
+				echo "<form action=./backend/exec.php method=post><input type=hidden name=action value=ping><input type=hidden name=hostname value=".$hostname.">
+					<button type=submit id=submit><img style='vertical-align: top;' src=./gfx/reload.png> Update Client-Status</button></form>";
+				echo "<form action=index.php?site=client_config method=post><input type=hidden name=hostname value=".$hostname.">
+					<button type=submit id=submit><img style='vertical-align: top;' src=./gfx/edit.png> Configuration</button></form>";
+			}
 			if( $_SESSION["STATUS"] == 2) {
 				echo "<a title='Delete Host' href=index.php?site=delete_host&id=".$id."><img id=delete alt='Delete Host' src=./gfx/delete.png></a>";
 			}			
@@ -90,10 +122,6 @@ function show_client_details($id, $report_id=null) {
 			$result=mysql_query($query);
 			
 			
-			if($_SESSION["STATUS"] >= 1) {
-				echo "<form action=./backend/exec.php method=post><input name=hostname type=hidden value=".$hostname.">
-					<input name=action value=update type=hidden><button id=submit type=submit><img style='vertical-align: top;' src=./gfx/reload.png> Update Signatures</button></form>";
-			}
 			
 			//Show Signatures
 			echo "<div id=content><table id=signatures bgcolor=#FFFFFF><tr bgcolor=#9999FF id=nohover><th width=50%>Signature</th><th>Date</th>";
@@ -131,8 +159,10 @@ function show_client_details($id, $report_id=null) {
 			
 			//Show Scan-Reports
 			echo "<table id=content bgcolor=white><tr bgcolor=#9999FF id=nohover><th width=1px>Rescan</th><th width=20%>Scan-Path</th><th width=20%>Date</th><th>Report</th>";
-			if(isset($report_id) && is_numeric($report_id) && $_SESSION["STATUS"] == 2) {
-				echo "<th>Delete</th>";
+			if($_SESSION["STATUS"]==2) {
+				echo "<th width=1%>Delete</th>";
+			} else {
+				echo "<th width=1%></th>";
 			}
 			echo "</tr>";
 			while(($row=mysql_fetch_array($result)) != null) {
@@ -285,5 +315,41 @@ function show_login_form() {
                 </form></table>");
 
 }
+
+function show_client_config($hostname) {
+	include "inc_system.php";
+	$parameter=array("vsig_server", "adm_server", "adm_port", "cln_addr", "cln_port");
+
+        $query="SELECT ID FROM client where Hostname = \"".$hostname."\" LIMIT 1;";
+        $row=mysql_fetch_array(mysql_query($query));
+
+	echo "<h2 style='margin-bottom: 0px'>Configuration of ".$hostname."</h2>";	
+	echo "<div id=content style='border-bottom: 1px solid black;'><a title='Back to List' href=index.php><img alt='Index' id=icon style='margin-bottom: 2px;' src=./gfx/home.png>
+		</a> &rarr; <a href=index.php?details=".$row['ID']."><img id=icon style='margin-bottom: 2px;' src=./gfx/computer.png> <b>".$hostname."</b></a>
+		&rarr; Configuration</div><br>";
+
+	echo "<table bgcolor=white id=signatures><tr id=nohover><th>Parameter</th><th width=30%>Value</th>";
+	if($_SESSION["STATUS"] == 2) {
+		echo "<th>Change to</th>"; 
+	}
+	echo "</tr>";
+
+	foreach ($parameter as $para) {
+		$value=get_config_parameter($hostname, $para);
+		echo "<tr><td>".$para."</td><td>".$value."</td>";
+		if($_SESSION["STATUS"] == 2) {
+			echo "<td><form action=./backend/exec.php method=post>
+				<input type=hidden name=id value=".$row['ID']."> 
+				<input type=hidden name=action value=set> 
+				<input type=hidden name=hostname value=".$hostname.">
+				<input type=hidden name=parameter value=".$para.">
+				<input type=text size=30 name=value>
+				<input type=submit value=Change></form></td>";
+		}
+	}
+	echo "</tr></table>";	
+
+}
+
 
 ?>

@@ -1,7 +1,5 @@
 Placebo
-
-A ClamAV Controll Enviroment for Enterprices
-
+A ClamAV Central Management Toolkit for Enterprises
 
 
 
@@ -9,8 +7,8 @@ A ClamAV Controll Enviroment for Enterprices
 This Project is Python, PHP, Bash and MySQL based.
 It's supposed to be as simple as possible and must be really reliable. 
 
-This Project is about creating a Interface for an admin, who has to administrade a lot of linux nodes,
-which all need a AntiVirus Scanner and must be kept up to date.
+This Project is about creating a Interface for an admin, who has to manage a lot of linux nodes,
+which all need a AntiVirus Scanner and has to be kept up to date.
 
 Placebo provides:
 	- A PHP based frontend
@@ -22,7 +20,9 @@ Placebo provides:
 
 --- Functionality ---
 	- Scan a host remotely 
-	- Update a hosts Virus Signarutes
+	- Update a hosts Virus-Signarutes
 	- Add a new host to DB
+	- Get/Set client configuration parameters
+	- Check client connectivitie
 	
 	|--> All results are saved to the MySQL DB and are available and controlable from the PHP-Frontend!

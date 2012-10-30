@@ -37,4 +37,29 @@ function get_scan_processes($hostname) {
 	}
 }
 
+function get_config_parameter($hostname, $parameter) {
+	if(isset($hostname) && isset($parameter)) {
+		return shell_exec("/usr/bin/python /usr/local/bin/placebos2c.py get:".$parameter." ".$hostname." | tail -1");
+	} else {
+		return "ERR";
+	}
+}
+
+function set_config_parameter($hostname, $parameter, $value) {
+	if(isset($hostname) && isset($parameter) && isset($value)) {
+		return shell_exec("/usr/bin/python /usr/local/bin/placebos2c.py set:".$parameter."=".$value." ".$hostname." | tail -1");
+	} else {
+		return "ERR";
+	}
+}
+
+function get_client_status($hostname) {
+        if(isset($hostname)) {
+                exec("/usr/bin/python /usr/local/bin/placebos2c.py ping ".$hostname);
+		return 0;
+        } else {
+                return 1;
+        }
+}
+
 ?>

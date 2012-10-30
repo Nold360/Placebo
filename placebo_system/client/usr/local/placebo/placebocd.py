@@ -131,16 +131,21 @@ class Daemon:
 		addr=(host,port)
 
 		serversocket = socket(AF_INET, SOCK_STREAM)
+		#serversocket.setsockopt(serversocket.SOL_SOCKET, serversocket.SO_KEEPALIVE,1)
+		serversocket.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
 		serversocket.bind(addr)
-		serversocket.listen(5)
+		serversocket.listen(1)
 
 		print "Placebo Client-Daemon started..."
 		while 1: 
 			try: 
 				connection,address = serversocket.accept()
-				new_thread = proc_server_request(connection)
-				new_thread.start()
-
+				if address[0] == get_config_parameter("adm_server") or gethostbyaddr(address[0])[0].split(".")[0] == get_config_parameter("adm_server"):
+					new_thread = proc_server_request(connection)
+					new_thread.start()
+				else:
+					send_end(connection,"CLNT_999")
+					connection.close()
 			except:
 				print "Exit"
 				serversocket.close()
@@ -161,11 +166,13 @@ class proc_server_request(Thread):
         def run(self):
                 connect = self.connect
                 enc_msg = recv_end(connect)
+		
+		#Checks for encryption and executes non-encrypted commands
                 if enc_msg.split("\n")[0] == "-----BEGIN PGP MESSAGE-----":
                         msg = decrypt(enc_msg)
                 elif clean_string(enc_msg[:8]) == "CLNT_NEW":
                         added = add_public_key(enc_msg[8:])
-			if added == 0:
+			if added == 0 and is_registered() != 0:
                         	send_end(connect,encrypt("CLNT_NEW"+get_public_key()))
                         	ret = recv_end(connect)
 				print decrypt(ret)
@@ -178,9 +185,11 @@ class proc_server_request(Thread):
                         print "Error"
                         sys.exit(1)
 
+		#Encrypted commands
                 if clean_string(msg[:8]) == "CLNT_SCN":
                         if len(process_exists("clamscan -i -r "+clean_string(msg[8:-4]))) == 0:
-                                enc_msg = encrypt("CLNT_000"+scan_file(clean_string(msg[8:-4])))
+				msg = scan_file(clean_string(msg[8:-4]))
+                                enc_msg = encrypt("CLNT_000"+msg)
                                 connect.send(encrypt("CLNT_DTA"))
                         else:
                                 enc_msg = encrypt("CLNT_100")
@@ -194,6 +203,27 @@ class proc_server_request(Thread):
                                 enc_msg=encrypt("CLNT_100")
 			time.sleep(1)
 			send_end(connect,enc_msg)
+
+		elif clean_string(msg[:8]) == "CLNT_GET":
+			if get_config_parameter(msg[8:-4]) != None:
+				send_end(connect,encrypt(get_config_parameter(msg[8:-4])))
+			else:
+				send_end(connect,encrypt("CLNT_401"))
+
+		elif clean_string(msg[:8]) == "CLNT_SET":
+			parameter=msg[8:].split("=")[0]
+			value=msg[8:].split("=",1)[1]
+			value=value[:-4]
+			if get_config_parameter(parameter) != None:
+				if set_config_parameter(parameter, value) == 0:
+                                	send_end(connect,encrypt("CLNT_000"))
+				else:
+                                	send_end(connect,encrypt("CLNT_402"))
+			else:
+				send_end(connect,encrypt("CLNT_401"))
+
+		elif  clean_string(msg[:8]) == "CLNT_PIG":
+			send_end(connect,encrypt("CLNT_POG"))			
                 else:
                         send_end(connect,encrypt("CLNT_001"))
                 connect.close()

@@ -132,6 +132,7 @@ class Daemon:
 		addr=(host,port)
 
 		serversocket = socket(AF_INET, SOCK_STREAM)
+		#serversocket.setsockopt(SOL_SOCKET, SO_KEEPALIVE,1)
 		serversocket.bind(addr)
 		serversocket.listen(5)
 
