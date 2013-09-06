@@ -1,1 +1,0 @@
-* * * * * root for client in $(/usr/bin/python /usr/local/bin/placebo_query.py "Select Hostname from client" | cut -f 2 -d\'); do /usr/bin/python /usr/local/bin/placebos2c.py ping $client &>/dev/null; done 

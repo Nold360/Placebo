@@ -23,7 +23,7 @@
 <div id=footer>
 	| <a target=_blank href=https://github.com/Nold360/Placebo>Placebo</a> | Ver. 0.1 | 
 	By Gerrit '<a target=_blank href=https://github.com/Nold360>Nold</a>' Pannek 2012 |
-	<a target=_blank href=http://www.gnu.org/licenses/gpl-3.0.txt>GPLv3</a> licensed |
+	<a target=_blank href=>BSD 2-clause</a> licensed |
 	Powered by <a target=_blank	 href=http://www.clamav.net>ClamAV</a> |
 </div>
 </body></html>
